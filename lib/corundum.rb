@@ -10,8 +10,8 @@ class Corundum
 
   VERSION = "0.1.0"
 
-  def self.preview(recveiver, name)
-    method = recveiver.method(name)
+  def self.preview(receiver, name)
+    method = receiver.method(name)
     iseq = RubyVM::InstructionSequence.of(method)
     return false if iseq.nil?
 

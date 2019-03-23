@@ -4,7 +4,8 @@ extern crate helix;
 ruby! {
     class Corundum {
         def preview_cranelift_ir(iseq: Vec<String>) {
-            corundum_jit::run();
+            let mut jit = corundum_jit::JIT::new();
+            jit.run();
             println!("Ran a JITed function!");
         }
     }
