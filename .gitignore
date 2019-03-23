@@ -8,3 +8,5 @@
 /tmp/
 
 /target/
+/lib/corundum/native.bundle
+/corundum_jit/target/
