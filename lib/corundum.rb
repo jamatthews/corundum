@@ -16,6 +16,6 @@ class Corundum
     return false if iseq.nil?
 
     puts "#{iseq.disasm}\n"
-    preview_cranelift_ir()
+    preview_cranelift_ir(['putnil','leave'])
   end
 end
