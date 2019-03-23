@@ -1,9 +1,10 @@
 [package]
 name = "corundum"
-version = "0.0.1"
+version = "0.0.0"
 
 [lib]
 crate-type = ["cdylib"]
 
 [dependencies]
 helix = "0.5.0"
+corundum_jit = { path = "corundum_jit" }
