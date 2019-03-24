@@ -30,14 +30,14 @@ impl JIT {
         }
     }
 
-    pub fn run(&mut self) {
+    pub fn run(&mut self, name: &str, iseq: &Vec<String>) {
         let sig = Signature {
             params: vec![],
             returns: vec![],
             call_conv: CallConv::SystemV,
         };
 
-        let func_id = self.module.declare_function("abc", Linkage::Local, &sig).unwrap();
+        let func_id = self.module.declare_function(name, Linkage::Local, &sig).unwrap();
 
         self.codegen_context.func = Function::with_name_signature(ExternalName::user(0, func_id.as_u32()), sig);
 
