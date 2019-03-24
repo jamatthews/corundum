@@ -31,6 +31,12 @@ impl JIT {
     }
 
     pub fn run(&mut self, name: &str, iseq: &Vec<String>) {
+        let function = self.compile(name, iseq).unwrap();
+        let function = unsafe { mem::transmute::<_, fn()>(function) };
+        function();
+    }
+
+    pub fn compile(&mut self, name: &str, iseq: &Vec<String>) -> Result<*const u8, String> {
         let sig = Signature {
             params: vec![],
             returns: vec![],
@@ -51,7 +57,6 @@ impl JIT {
         self.module.define_function(func_id, &mut self.codegen_context).unwrap();
         self.module.finalize_definitions();
         let code = self.module.get_finalized_function(func_id);
-        let function = unsafe { mem::transmute::<_, fn()>(code) };
-        function();
+        Ok(code)
     }
 }
