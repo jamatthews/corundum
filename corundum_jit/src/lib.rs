@@ -65,11 +65,11 @@ impl JIT {
 
         let counter_constant = builder.ins().iconst(I64, i64::from(0));
         builder.declare_var(Variable::with_u32(0), I64);
-        let counter = builder.def_var(Variable::with_u32(0), counter_constant);
+        builder.def_var(Variable::with_u32(0), counter_constant);
 
         let limit_constant = builder.ins().iconst(I64, i64::from(3000000));
         builder.declare_var(Variable::with_u32(1), I64);
-        let limit = builder.def_var(Variable::with_u32(1), limit_constant);
+        builder.def_var(Variable::with_u32(1), limit_constant);
 
         let header_block = builder.create_ebb();
         let exit_block = builder.create_ebb();
@@ -85,7 +85,10 @@ impl JIT {
 
         builder.ins().brz(condition, exit_block, &[]);
 
-        // do increment here
+        let lhs = builder.use_var(Variable::with_u32(0));
+        let rhs = builder.ins().iconst(I64, i64::from(1));
+        let result = builder.ins().iadd(lhs, rhs);
+        builder.def_var(Variable::with_u32(0), result);
 
         builder.ins().jump(header_block, &[]);
 
