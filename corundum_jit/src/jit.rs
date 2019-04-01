@@ -28,12 +28,11 @@ impl JIT {
     }
 
     pub fn run(&mut self, name: &str, iseq: &Vec<String>) {
-
         let function = self.compile(name, iseq).unwrap();
         let function = unsafe { mem::transmute::<_, fn()>(function) };
         function();
     }
-
+    
     fn compile(&mut self, name: &str, iseq: &Vec<String>) -> Result<*const u8, String> {
         let sig = Signature {
             params: vec![],

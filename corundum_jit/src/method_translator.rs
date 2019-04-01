@@ -16,12 +16,14 @@ pub struct MethodTranslator {
 
 pub struct TranslationState {
     pub stack: Vec<Value>,
+    pub blocks: Vec<Ebb>,
 }
 
 impl TranslationState {
     pub fn new() -> Self {
         Self {
             stack: Vec::new(),
+            blocks: Vec::new(),
         }
     }
 
@@ -31,6 +33,14 @@ impl TranslationState {
 
     pub fn pop(&mut self) -> Value {
         self.stack.pop().unwrap()
+    }
+
+    pub fn push_block(&mut self, block: Ebb) {
+        self.blocks.push(block);
+    }
+
+    pub fn get_block(&mut self, index: usize) -> Ebb {
+        *self.blocks.get(index).unwrap()
     }
 }
 
@@ -46,37 +56,38 @@ impl MethodTranslator {
     pub fn translate(&mut self, function: &mut Function) -> Result<(), String> {
         let mut builder = FunctionBuilder::new(function, &mut self.builder_context);
 
-        let block = builder.create_ebb();
-        builder.switch_to_block(block);
+        self.state.push_block(builder.create_ebb());
+        self.state.push_block(builder.create_ebb());
+        self.state.push_block(builder.create_ebb());
+        builder.switch_to_block(self.state.get_block(0));
 
         builder.declare_var(Variable::with_u32(0), I64);
 
+        // first block
         translate_code(OpCode::PutObject(0), &mut builder, &mut self.state);
         translate_code(OpCode::SetLocal(0), &mut builder, &mut self.state);
+        translate_code(OpCode::Jump(0), &mut builder, &mut self.state);
 
-        let header_block = builder.create_ebb();
-        let exit_block = builder.create_ebb();
-
-        builder.ins().jump(header_block, &[]);
-        builder.seal_block(block);
-        builder.switch_to_block(header_block);
-
-        translate_code(OpCode::GetLocal(0), &mut builder, &mut self.state);
-        translate_code(OpCode::PutObject(3000000), &mut builder, &mut self.state);
-        translate_code(OpCode::OptLt, &mut builder, &mut self.state);
-
-        builder.ins().brz(self.state.pop(), exit_block, &[]);
-
+        //body
+        translate_code(OpCode::Label(1), &mut builder, &mut self.state);
         translate_code(OpCode::GetLocal(0), &mut builder, &mut self.state);
         translate_code(OpCode::PutObject(1), &mut builder, &mut self.state);
         translate_code(OpCode::OptPlus, &mut builder, &mut self.state);
+        translate_code(OpCode::SetLocal(0), &mut builder, &mut self.state);
 
-        builder.ins().jump(header_block, &[]);
+        translate_code(OpCode::Jump(0), &mut builder, &mut self.state); //ok, but how do I know I need to add this?
 
-        builder.switch_to_block(exit_block); //required?
-        builder.seal_block(header_block);
+        //condition
+        translate_code(OpCode::Label(0), &mut builder, &mut self.state);
+        translate_code(OpCode::GetLocal(0), &mut builder, &mut self.state);
+        translate_code(OpCode::PutObject(300000000), &mut builder, &mut self.state);
+        translate_code(OpCode::OptLt, &mut builder, &mut self.state);
+        translate_code(OpCode::BranchIf(1), &mut builder, &mut self.state);
         builder.ins().return_(&[]);
-        builder.seal_block(exit_block);
+        builder.seal_all_blocks();
+
+        println!("{}", builder.display(None));
+
         Ok(())
     }
 }
@@ -107,6 +118,15 @@ fn translate_code(op: OpCode, builder: &mut FunctionBuilder, state: &mut Transla
             let c = builder.ins().icmp(IntCC::SignedLessThan, lhs, rhs);
             let value = builder.ins().bint(I64, c);
             state.push(value);
+        },
+        OpCode::Jump(label) => {
+            builder.ins().jump(state.get_block(label+1), &[]);
+        },
+        OpCode::Label(label) => {
+            builder.switch_to_block(state.get_block(label+1));
+        },
+        OpCode::BranchIf(label) => {
+            builder.ins().brz(state.pop(), state.get_block(label+1), &[]);
         }
     }
 }
@@ -117,4 +137,7 @@ enum OpCode {
     GetLocal(u32),
     OptPlus,
     OptLt,
+    Jump(usize),
+    Label(usize),
+    BranchIf(usize),
 }
