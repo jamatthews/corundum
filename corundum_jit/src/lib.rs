@@ -8,3 +8,5 @@ extern crate cranelift_simplejit;
 pub mod jit;
 
 mod method_translator;
+mod opcode_translator;
+mod translation_state;
