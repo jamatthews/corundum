@@ -32,8 +32,8 @@ impl JIT {
         let function = unsafe { mem::transmute::<_, fn()>(function) };
         function();
     }
-    
-    fn compile(&mut self, name: &str, iseq: &Vec<String>) -> Result<*const u8, String> {
+
+    pub fn compile(&mut self, name: &str, iseq: &Vec<String>) -> Result<*const u8, String> {
         let sig = Signature {
             params: vec![],
             returns: vec![],
@@ -43,11 +43,22 @@ impl JIT {
         let func_id = self.module.declare_function(name, Linkage::Local, &sig).unwrap();
         self.codegen_context.func = Function::with_name_signature(ExternalName::user(0, func_id.as_u32()), sig);
 
-        MethodTranslator::new().translate(&mut self.codegen_context.func).unwrap();
+        MethodTranslator::new().translate(&mut self.codegen_context.func, vec![]).unwrap();
 
         self.module.define_function(func_id, &mut self.codegen_context).unwrap();
         self.module.finalize_definitions();
         let code = self.module.get_finalized_function(func_id);
         Ok(code)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn it_compiles() {
+        JIT::new().compile("test", &vec![]).unwrap();
+        ()
     }
 }

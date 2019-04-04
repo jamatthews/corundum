@@ -27,7 +27,7 @@ impl MethodTranslator {
         }
     }
 
-    pub fn translate(&mut self, function: &mut Function) -> Result<(), String> {
+    pub fn translate(&mut self, function: &mut Function, opcodes: Vec<OpCode>) -> Result<(), String> {
         let mut builder = FunctionBuilder::new(function, &mut self.builder_context);
 
         self.state.push_block(builder.create_ebb());
@@ -36,6 +36,35 @@ impl MethodTranslator {
         builder.switch_to_block(self.state.get_block(0));
 
         builder.declare_var(Variable::with_u32(0), I64);
+
+        for opcode in opcodes {
+            opcode_translator::translate_code(opcode, &mut builder, &mut self.state);
+        }
+
+        builder.ins().return_(&[]);
+        builder.seal_all_blocks();
+
+        println!("{}", builder.display(None));
+
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn it_compiles_while_loops() {
+        let sig = Signature {
+            params: vec![],
+            returns: vec![],
+            call_conv: CallConv::SystemV,
+        };
+
+        let mut module: Module<SimpleJITBackend> = Module::new(SimpleJITBuilder::new());
+        let func_id = module.declare_function("test".into(), Linkage::Local, &sig).unwrap();
+        let mut func = Function::with_name_signature(ExternalName::user(0, func_id.as_u32()), sig);
 
         let opcodes = vec![
             // first block
@@ -57,15 +86,6 @@ impl MethodTranslator {
             OpCode::BranchIf(1)
         ];
 
-        for opcode in opcodes {
-            opcode_translator::translate_code(opcode, &mut builder, &mut self.state);
-        }
-
-        builder.ins().return_(&[]);
-        builder.seal_all_blocks();
-
-        println!("{}", builder.display(None));
-
-        Ok(())
+        MethodTranslator::new().translate(&mut func, opcodes).unwrap();
     }
 }
