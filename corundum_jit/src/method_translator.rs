@@ -37,26 +37,30 @@ impl MethodTranslator {
 
         builder.declare_var(Variable::with_u32(0), I64);
 
-        // first block
-        opcode_translator::translate_code(OpCode::PutObject(0), &mut builder, &mut self.state);
-        opcode_translator::translate_code(OpCode::SetLocal(0), &mut builder, &mut self.state);
-        opcode_translator::translate_code(OpCode::Jump(0), &mut builder, &mut self.state);
+        let opcodes = vec![
+            // first block
+            OpCode::PutObject(0),
+            OpCode::SetLocal(0),
+            OpCode::Jump(0),
+            //body
+            OpCode::Label(1),
+            OpCode::GetLocal(0),
+            OpCode::PutObject(1),
+            OpCode::OptPlus,
+            OpCode::SetLocal(0),
+            OpCode::Jump(0),
+            //condition
+            OpCode::Label(0),
+            OpCode::GetLocal(0),
+            OpCode::PutObject(300000000),
+            OpCode::OptLt,
+            OpCode::BranchIf(1)
+        ];
 
-        //body
-        opcode_translator::translate_code(OpCode::Label(1), &mut builder, &mut self.state);
-        opcode_translator::translate_code(OpCode::GetLocal(0), &mut builder, &mut self.state);
-        opcode_translator::translate_code(OpCode::PutObject(1), &mut builder, &mut self.state);
-        opcode_translator::translate_code(OpCode::OptPlus, &mut builder, &mut self.state);
-        opcode_translator::translate_code(OpCode::SetLocal(0), &mut builder, &mut self.state);
+        for opcode in opcodes {
+            opcode_translator::translate_code(opcode, &mut builder, &mut self.state);
+        }
 
-        opcode_translator::translate_code(OpCode::Jump(0), &mut builder, &mut self.state); //ok, but how do I know I need to add this?
-
-        //condition
-        opcode_translator::translate_code(OpCode::Label(0), &mut builder, &mut self.state);
-        opcode_translator::translate_code(OpCode::GetLocal(0), &mut builder, &mut self.state);
-        opcode_translator::translate_code(OpCode::PutObject(300000000), &mut builder, &mut self.state);
-        opcode_translator::translate_code(OpCode::OptLt, &mut builder, &mut self.state);
-        opcode_translator::translate_code(OpCode::BranchIf(1), &mut builder, &mut self.state);
         builder.ins().return_(&[]);
         builder.seal_all_blocks();
 
