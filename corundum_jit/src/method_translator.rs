@@ -30,9 +30,7 @@ impl MethodTranslator {
     pub fn translate(&mut self, function: &mut Function, opcodes: Vec<OpCode>) -> Result<(), String> {
         let mut builder = FunctionBuilder::new(function, &mut self.builder_context);
 
-        self.state.push_block(builder.create_ebb());
-        self.state.push_block(builder.create_ebb());
-        self.state.push_block(builder.create_ebb());
+        setup_basic_blocks(&opcodes, &mut builder, &mut self.state);
         builder.switch_to_block(self.state.get_block(0));
 
         builder.declare_var(Variable::with_u32(0), I64);
@@ -49,6 +47,17 @@ impl MethodTranslator {
         Ok(())
     }
 }
+
+fn setup_basic_blocks(opcodes: &Vec<OpCode>, builder: &mut FunctionBuilder, state: &mut TranslationState){
+    for opcode in opcodes {
+        match opcode {
+            OpCode::BranchIf(_) => state.push_block(builder.create_ebb()),
+            OpCode::Jump(_) => state.push_block(builder.create_ebb()),
+            _ => ()
+        }
+    }
+}
+
 
 #[cfg(test)]
 mod tests {
