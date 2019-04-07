@@ -32,13 +32,14 @@ pub fn translate_code(op: OpCode, builder: &mut FunctionBuilder, state: &mut Tra
             state.push(value);
         },
         OpCode::Jump(label) => {
-            builder.ins().jump(state.get_block(label+1), &[]);
+            builder.ins().jump(state.get_block(label), &[]);
         },
         OpCode::Label(label) => {
-            builder.switch_to_block(state.get_block(label+1));
+            builder.switch_to_block(state.get_block(label));
         },
         OpCode::BranchIf(label) => {
-            builder.ins().brz(state.pop(), state.get_block(label+1), &[]);
-        }
+            builder.ins().brz(state.pop(), state.get_block(label), &[]);
+        },
+        OpCode::PutNil|OpCode::Pop|OpCode::Leave => {}
     }
 }

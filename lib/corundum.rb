@@ -20,6 +20,7 @@ class Corundum
       .reject{|x| x.is_a?(Array) && x.first == :trace }
       .map!{|x| if x.is_a?(Symbol); x.to_s.split('_') ; else x; end }
       .map!{|x| if x.is_a?(Array); x.map(&:to_s) ; else x; end }
+      .map!{|x| if x.is_a?(Array) && ['jump','branchif'].include?(x[0]) ; x[1].gsub!('label_','') ; end; x }
     preview_cranelift_ir("#{receiver.class.name}#{name}", stringified_iseq)
   end
 end

@@ -1,15 +1,16 @@
 use cranelift::prelude::*;
+use std::collections::HashMap;
 
 pub struct TranslationState {
     pub stack: Vec<Value>,
-    pub blocks: Vec<Ebb>,
+    pub blocks: HashMap<usize,Ebb>,
 }
 
 impl TranslationState {
     pub fn new() -> Self {
         Self {
             stack: Vec::new(),
-            blocks: Vec::new(),
+            blocks: HashMap::new(),
         }
     }
 
@@ -21,11 +22,14 @@ impl TranslationState {
         self.stack.pop().unwrap()
     }
 
-    pub fn push_block(&mut self, block: Ebb) {
-        self.blocks.push(block);
+    pub fn add_block(&mut self, label: usize, block: Ebb) {
+        self.blocks.insert(label, block);
     }
 
-    pub fn get_block(&mut self, index: usize) -> Ebb {
-        *self.blocks.get(index).unwrap()
+    pub fn get_block(&mut self, label: usize) -> Ebb {
+        match self.blocks.get(&label) {
+            Some(block) => *block,
+            None => panic!("Couldn't get block {}", label)
+        }
     }
 }

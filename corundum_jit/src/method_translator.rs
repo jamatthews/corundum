@@ -26,7 +26,7 @@ impl MethodTranslator {
         setup_basic_blocks(&opcodes, &mut builder, &mut self.state);
         builder.switch_to_block(self.state.get_block(0));
 
-        builder.declare_var(Variable::with_u32(0), I64);
+        builder.declare_var(Variable::with_u32(3), I64);
 
         for opcode in opcodes {
             opcode_translator::translate_code(opcode, &mut builder, &mut self.state);
@@ -44,7 +44,7 @@ impl MethodTranslator {
         setup_basic_blocks(&opcodes, &mut builder, &mut self.state);
         builder.switch_to_block(self.state.get_block(0));
 
-        builder.declare_var(Variable::with_u32(0), I64);
+        builder.declare_var(Variable::with_u32(3), I64);
 
         for opcode in opcodes {
             opcode_translator::translate_code(opcode, &mut builder, &mut self.state);
@@ -58,12 +58,11 @@ impl MethodTranslator {
 }
 
 fn setup_basic_blocks(opcodes: &Vec<OpCode>, builder: &mut FunctionBuilder, state: &mut TranslationState){
-    state.push_block(builder.create_ebb());
+    state.add_block(0, builder.create_ebb());
 
     for opcode in opcodes {
         match opcode {
-            OpCode::BranchIf(_) => state.push_block(builder.create_ebb()),
-            OpCode::Jump(_) => state.push_block(builder.create_ebb()),
+            OpCode::Label(x) => state.add_block(*x, builder.create_ebb()),
             _ => ()
         }
     }
