@@ -5,10 +5,22 @@ class CorundumTest < Minitest::Test
     refute_nil ::Corundum::VERSION
   end
 
+  def test_preview
+    Corundum.preview(self, :empty)
+  end
+
+  def test_while_loop
+    Corundum.preview(self, :while_loop)
+  end
+
+  private
   def empty
   end
 
-  def test_preview
-    Corundum.preview(self, :empty)
+  def while_loop
+    i = 0
+    while i < 3_000_000 do
+      i = i + 1
+    end
   end
 end

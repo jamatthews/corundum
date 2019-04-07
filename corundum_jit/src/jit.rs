@@ -27,13 +27,13 @@ impl JIT {
         }
     }
 
-    pub fn run(&mut self, name: &str, iseq: &Vec<String>) {
+    pub fn run(&mut self, name: &str, iseq: &Vec<Vec<String>>) {
         let function = self.compile(name, iseq).unwrap();
         let function = unsafe { mem::transmute::<_, fn()>(function) };
         function();
     }
 
-    pub fn compile(&mut self, name: &str, iseq: &Vec<String>) -> Result<*const u8, String> {
+    pub fn compile(&mut self, name: &str, iseq: &Vec<Vec<String>>) -> Result<*const u8, String> {
         let sig = Signature {
             params: vec![],
             returns: vec![],
@@ -51,7 +51,7 @@ impl JIT {
         Ok(code)
     }
 
-    pub fn preview(&mut self, name: &str, iseq: &Vec<String>) {
+    pub fn preview(&mut self, name: &str, iseq: &Vec<Vec<String>>) {
         let sig = Signature {
             params: vec![],
             returns: vec![],

@@ -1,4 +1,5 @@
 require "helix_runtime"
+require "pp"
 
 begin
   require "corundum/native"
@@ -14,6 +15,11 @@ class Corundum
     method = receiver.method(name)
     iseq = RubyVM::InstructionSequence.of(method)
     return false if iseq.nil?
-    preview_cranelift_ir("#{receiver.class.name}#{name}", ['putnil','leave'])
+    stringified_iseq = iseq.to_a.last
+      .select{|x| x.is_a?(Symbol) || x.is_a?(Array) } #strip out extra stuff
+      .reject{|x| x.is_a?(Array) && x.first == :trace }
+      .map!{|x| if x.is_a?(Symbol); x.to_s.split('_') ; else x; end }
+      .map!{|x| if x.is_a?(Array); x.map(&:to_s) ; else x; end }
+    preview_cranelift_ir("#{receiver.class.name}#{name}", stringified_iseq)
   end
 end
