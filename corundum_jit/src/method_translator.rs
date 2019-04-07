@@ -72,6 +72,12 @@ fn setup_basic_blocks(opcodes: &Vec<OpCode>, builder: &mut FunctionBuilder, stat
 #[cfg(test)]
 mod tests {
     use super::*;
+    use cranelift::prelude::*;
+    use cranelift_codegen::ir::*;
+    use cranelift_codegen::isa::CallConv;
+    use cranelift_codegen::Context;
+    use cranelift_module::*;
+    use cranelift_simplejit::*;
 
     #[test]
     fn it_compiles_while_loops() {
@@ -89,20 +95,20 @@ mod tests {
             // first block
             OpCode::PutObject(0),
             OpCode::SetLocal(0),
-            OpCode::Jump(0),
+            OpCode::Jump(1),
             //body
-            OpCode::Label(1),
+            OpCode::Label(2),
             OpCode::GetLocal(0),
             OpCode::PutObject(1),
             OpCode::OptPlus,
             OpCode::SetLocal(0),
-            OpCode::Jump(0),
+            OpCode::Jump(1),
             //condition
-            OpCode::Label(0),
+            OpCode::Label(1),
             OpCode::GetLocal(0),
             OpCode::PutObject(300000000),
             OpCode::OptLt,
-            OpCode::BranchIf(1)
+            OpCode::BranchIf(2)
         ];
 
         MethodTranslator::new().translate(&mut func, opcodes).unwrap();
@@ -117,7 +123,7 @@ mod tests {
         };
 
         let mut module: Module<SimpleJITBackend> = Module::new(SimpleJITBuilder::new());
-        let func_id = module.declare_function("test1".into(), Linkage::Local, &sig).unwrap();
+        let func_id = module.declare_function("test".into(), Linkage::Local, &sig).unwrap();
         let mut func = Function::with_name_signature(ExternalName::user(0, func_id.as_u32()), sig);
 
         let preview: String = MethodTranslator::new().preview(&mut func, vec![]).unwrap();

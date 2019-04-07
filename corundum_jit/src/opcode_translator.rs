@@ -12,6 +12,7 @@ pub fn translate_code(op: OpCode, builder: &mut FunctionBuilder, state: &mut Tra
         },
         OpCode::SetLocal(index) => {
             let value = state.pop();
+            builder.declare_var(Variable::with_u32(index), I64);
             builder.def_var(Variable::with_u32(index), value);
         },
         OpCode::GetLocal(index) => {
