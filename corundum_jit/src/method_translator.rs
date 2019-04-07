@@ -10,7 +10,7 @@ use cranelift_module::*;
 use cranelift_simplejit::*;
 
 use opcode_translator;
-use opcode_translator::OpCode;
+use opcode::OpCode;
 use translation_state::TranslationState;
 
 pub struct MethodTranslator {

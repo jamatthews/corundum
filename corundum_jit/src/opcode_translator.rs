@@ -9,18 +9,8 @@ use cranelift_frontend::*;
 use cranelift_module::*;
 use cranelift_simplejit::*;
 
+use opcode::OpCode;
 use translation_state::TranslationState;
-
-pub enum OpCode {
-    PutObject(i64),
-    SetLocal(u32),
-    GetLocal(u32),
-    OptPlus,
-    OptLt,
-    Jump(usize),
-    Label(usize),
-    BranchIf(usize),
-}
 
 pub fn translate_code(op: OpCode, builder: &mut FunctionBuilder, state: &mut TranslationState) {
     match op {
