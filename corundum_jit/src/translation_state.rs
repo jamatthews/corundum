@@ -1,13 +1,4 @@
 use cranelift::prelude::*;
-use cranelift_codegen::ir::*;
-use cranelift_codegen::isa::CallConv;
-use cranelift_codegen::Context;
-use cranelift_codegen::ir::types::I64;
-use cranelift_codegen::ir::Function;
-use cranelift_entity::EntityRef;
-use cranelift_frontend::*;
-use cranelift_module::*;
-use cranelift_simplejit::*;
 
 pub struct TranslationState {
     pub stack: Vec<Value>,
