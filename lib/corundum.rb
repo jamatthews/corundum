@@ -14,8 +14,6 @@ class Corundum
     method = receiver.method(name)
     iseq = RubyVM::InstructionSequence.of(method)
     return false if iseq.nil?
-
-    puts "#{iseq.disasm}\n"
     preview_cranelift_ir("#{receiver.class.name}#{name}", ['putnil','leave'])
   end
 end
