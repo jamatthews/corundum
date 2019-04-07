@@ -50,6 +50,20 @@ impl JIT {
         let code = self.module.get_finalized_function(func_id);
         Ok(code)
     }
+
+    pub fn preview(&mut self, name: &str, iseq: &Vec<String>) {
+        let sig = Signature {
+            params: vec![],
+            returns: vec![],
+            call_conv: CallConv::SystemV,
+        };
+
+        let func_id = self.module.declare_function(name, Linkage::Local, &sig).unwrap();
+        self.codegen_context.func = Function::with_name_signature(ExternalName::user(0, func_id.as_u32()), sig);
+
+        let ir = MethodTranslator::new().preview(&mut self.codegen_context.func, vec![]).unwrap();
+        println!("{}", ir);
+    }
 }
 
 #[cfg(test)]
@@ -59,6 +73,12 @@ mod tests {
     #[test]
     fn it_compiles() {
         JIT::new().compile("test", &vec![]).unwrap();
+        ()
+    }
+
+    #[test]
+    fn it_previews() {
+        JIT::new().preview("test", &vec![]);
         ()
     }
 }
