@@ -13,6 +13,14 @@ class CorundumTest < Minitest::Test
     Corundum.preview(self, :while_loop)
   end
 
+  def test_preview
+    Corundum.run(self, :empty)
+  end
+
+  def test_while_loop
+    Corundum.run(self, :while_loop)
+  end
+
   private
   def empty
   end
