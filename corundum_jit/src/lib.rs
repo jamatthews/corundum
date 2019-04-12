@@ -5,6 +5,8 @@ extern crate cranelift_frontend;
 extern crate cranelift_module;
 extern crate cranelift_simplejit;
 
+extern crate helix;
+
 pub mod jit;
 
 mod method_translator;

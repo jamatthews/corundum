@@ -32,7 +32,6 @@ impl MethodTranslator {
             opcode_translator::translate_code(opcode, &mut builder, &mut self.state);
         }
 
-        builder.ins().return_(&[]);
         builder.seal_all_blocks();
 
         Ok(())
@@ -50,7 +49,6 @@ impl MethodTranslator {
             opcode_translator::translate_code(opcode, &mut builder, &mut self.state);
         }
 
-        builder.ins().return_(&[]);
         builder.seal_all_blocks();
 
         Ok(builder.display(None).to_string())

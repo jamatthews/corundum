@@ -46,6 +46,9 @@ pub fn translate_code(op: OpCode, builder: &mut FunctionBuilder, state: &mut Tra
         OpCode::BranchIf(label) => {
             builder.ins().brz(state.pop(), state.get_block(label), &[]);
         },
-        OpCode::PutNil|OpCode::Pop|OpCode::Leave => {}
+        OpCode::Leave => {
+            builder.ins().return_(&[]);
+        },
+        OpCode::PutNil|OpCode::Pop => {}
     }
 }

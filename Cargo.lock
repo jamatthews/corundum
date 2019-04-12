@@ -31,6 +31,7 @@ dependencies = [
  "cranelift-frontend 0.29.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "cranelift-module 0.29.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "cranelift-simplejit 0.29.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "helix 0.7.5 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]

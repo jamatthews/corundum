@@ -5,6 +5,8 @@ use cranelift_codegen::Context;
 use cranelift_module::*;
 use cranelift_simplejit::*;
 
+use helix::sys::*;
+
 use std::mem;
 
 use method_translator::MethodTranslator;
@@ -24,10 +26,11 @@ impl JIT {
         }
     }
 
-    pub fn run(&mut self, name: &str, iseq: &Vec<Vec<String>>) {
+    pub fn run(&mut self, name: &str, iseq: &Vec<Vec<String>>) -> VALUE {
         let function = self.compile(name, iseq).unwrap();
         let function = unsafe { mem::transmute::<_, fn()>(function) };
         function();
+        unsafe { Qnil }
     }
 
     pub fn compile(&mut self, name: &str, iseq: &Vec<Vec<String>>) -> Result<*const u8, String> {

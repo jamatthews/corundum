@@ -1,5 +1,6 @@
 #[macro_use]
 extern crate helix;
+use helix::sys::*;
 
 ruby! {
     class Corundum {
@@ -8,9 +9,9 @@ ruby! {
             jit.preview(&name, &iseq);
         }
 
-        def compile_and_run(name: String, iseq: Vec<Vec<String>>) {
+        def compile_and_run(name: String, iseq: Vec<Vec<String>>) -> VALUE {
             let mut jit = corundum_jit::jit::JIT::new();
-            jit.run(&name, &iseq);
+            jit.run(&name, &iseq)
         }
     }
 }
