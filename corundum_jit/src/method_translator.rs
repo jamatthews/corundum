@@ -25,6 +25,7 @@ impl MethodTranslator {
 
         setup_basic_blocks(&opcodes, &mut builder, &mut self.state);
         builder.switch_to_block(self.state.get_block(0));
+        builder.ensure_inserted_ebb();
 
         builder.declare_var(Variable::with_u32(3), I64);
 
@@ -32,6 +33,7 @@ impl MethodTranslator {
             opcode_translator::translate_code(opcode, &mut builder, &mut self.state);
         }
 
+        builder.ins().return_(&[]);
         builder.seal_all_blocks();
 
         Ok(())
@@ -49,6 +51,7 @@ impl MethodTranslator {
             opcode_translator::translate_code(opcode, &mut builder, &mut self.state);
         }
 
+        builder.ins().return_(&[]);
         builder.seal_all_blocks();
 
         Ok(builder.display(None).to_string())
