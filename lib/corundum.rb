@@ -1,5 +1,4 @@
 require "helix_runtime"
-require "pp"
 
 begin
   require "corundum/native"
