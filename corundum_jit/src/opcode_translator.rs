@@ -12,7 +12,6 @@ pub fn translate_code(op: OpCode, builder: &mut FunctionBuilder, state: &mut Tra
         },
         OpCode::SetLocal(index) => {
             let value = state.pop();
-            builder.declare_var(Variable::with_u32(index), I64);
             builder.def_var(Variable::with_u32(index), value);
         },
         OpCode::GetLocal(index) => {
@@ -22,13 +21,12 @@ pub fn translate_code(op: OpCode, builder: &mut FunctionBuilder, state: &mut Tra
             let lhs = state.pop();
             let rhs = state.pop();
             let value = builder.ins().iadd(lhs, rhs);
-            builder.def_var(Variable::with_u32(0), value);
             state.push(value);
         },
         OpCode::OptLt => {
-            let lhs = state.pop();
             let rhs = state.pop();
-            let c = builder.ins().icmp(IntCC::SignedLessThan, lhs, rhs);
+            let lhs = state.pop();
+            let c = builder.ins().icmp(IntCC::UnsignedLessThan, lhs, rhs);
             let value = builder.ins().bint(I64, c);
             state.push(value);
         },
@@ -44,7 +42,7 @@ pub fn translate_code(op: OpCode, builder: &mut FunctionBuilder, state: &mut Tra
             }
         },
         OpCode::BranchIf(label) => {
-            builder.ins().brz(state.pop(), state.get_block(label), &[]);
+            builder.ins().brnz(state.pop(), state.get_block(label), &[]);
         },
         OpCode::Leave => {
             builder.ins().return_(&[state.pop()]);
