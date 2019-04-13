@@ -6,18 +6,18 @@ class CorundumTest < Minitest::Test
   end
 
   def test_preview
-    Corundum.preview(self, :empty)
+    Corundum.preview(self, :empty).is_a?(String)
   end
 
-  def test_while_loop
-    Corundum.preview(self, :while_loop)
+  def test_preview_while_loop
+    Corundum.preview(self, :while_loop).is_a?(String)
   end
 
-  def test_preview
-    Corundum.run(self, :empty)
+  def test_run
+    assert_nil Corundum.run(self, :empty)
   end
 
-  def test_while_loop
+  def test_run_while_loop
     assert_equal 3_000_000, Corundum.run(self, :while_loop)
   end
 

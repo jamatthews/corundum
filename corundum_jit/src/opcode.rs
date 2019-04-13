@@ -1,3 +1,4 @@
+#[derive(Debug)]
 pub enum OpCode {
     PutObject(i64),
     SetLocal(u32),

@@ -4,6 +4,7 @@ use std::collections::HashMap;
 pub struct TranslationState {
     pub stack: Vec<Value>,
     pub blocks: HashMap<usize,Ebb>,
+    pub between_blocks: bool,
 }
 
 impl TranslationState {
@@ -11,6 +12,7 @@ impl TranslationState {
         Self {
             stack: Vec::new(),
             blocks: HashMap::new(),
+            between_blocks: false,
         }
     }
 
@@ -19,7 +21,7 @@ impl TranslationState {
     }
 
     pub fn pop(&mut self) -> Value {
-        self.stack.pop().unwrap()
+        self.stack.pop().expect("Stack underflow")
     }
 
     pub fn add_block(&mut self, label: usize, block: Ebb) {

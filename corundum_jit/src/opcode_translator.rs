@@ -47,8 +47,22 @@ pub fn translate_code(op: OpCode, builder: &mut FunctionBuilder, state: &mut Tra
             builder.ins().brz(state.pop(), state.get_block(label), &[]);
         },
         OpCode::Leave => {
-            builder.ins().return_(&[]);
+            builder.ins().return_(&[state.pop()]);
         },
-        OpCode::PutNil|OpCode::Pop => {}
+        OpCode::PutNil => {
+            if builder.is_filled() {
+                state.between_blocks = true;
+            } else {
+                let value = builder.ins().iconst(I64, i64::from(0));
+                state.push(value);
+            }
+        },
+        OpCode::Pop => {
+            if state.between_blocks {
+                state.between_blocks = false;
+            } else {
+                state.pop();
+            }
+        }
     }
 }

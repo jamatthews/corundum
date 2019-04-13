@@ -1,5 +1,6 @@
 use cranelift::prelude::*;
 use cranelift_codegen::ir::*;
+use cranelift_codegen::ir::types::I64;
 use cranelift_codegen::isa::CallConv;
 use cranelift_codegen::Context;
 use cranelift_module::*;
@@ -27,17 +28,17 @@ impl JIT {
         }
     }
 
-    pub fn run(&mut self, name: &str, iseq: &Vec<Vec<String>>) -> VALUE {
+    pub fn run(&mut self, name: &str, iseq: &Vec<Vec<String>>) -> i64 {
         let function = self.compile(name, iseq).unwrap();
-        let function = unsafe { mem::transmute::<_, fn()>(function) };
-        function();
-        unsafe { Qnil }
+        let function = unsafe { mem::transmute::<_, fn() -> i64 >(function) };
+        let result = function();
+        result
     }
 
     pub fn compile(&mut self, name: &str, iseq: &Vec<Vec<String>>) -> Result<*const u8, String> {
         let sig = Signature {
             params: vec![],
-            returns: vec![],
+            returns: vec![AbiParam::new(I64)],
             call_conv: CallConv::SystemV,
         };
 
@@ -53,10 +54,10 @@ impl JIT {
         Ok(code)
     }
 
-    pub fn preview(&mut self, name: &str, iseq: &Vec<Vec<String>>) {
+    pub fn preview(&mut self, name: &str, iseq: &Vec<Vec<String>>) -> String {
         let sig = Signature {
             params: vec![],
-            returns: vec![],
+            returns: vec![AbiParam::new(I64)],
             call_conv: CallConv::SystemV,
         };
 
@@ -64,8 +65,7 @@ impl JIT {
         self.codegen_context.func = Function::with_name_signature(ExternalName::user(0, func_id.as_u32()), sig);
 
         let opcodes = iseq.iter().map(|x| x.into() ).collect();
-        let ir = MethodTranslator::new().preview(&mut self.codegen_context.func, opcodes).unwrap();
-        println!("{}", ir);
+        MethodTranslator::new().preview(&mut self.codegen_context.func, opcodes).unwrap()
     }
 }
 

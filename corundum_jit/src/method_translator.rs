@@ -79,7 +79,7 @@ mod tests {
     use cranelift_simplejit::*;
 
     #[test]
-    fn it_compiles_while_loops() {
+    fn it_translates_while_loops() {
         let sig = Signature {
             params: vec![],
             returns: vec![AbiParam::new(I64)],
@@ -95,6 +95,8 @@ mod tests {
             OpCode::PutObject(0),
             OpCode::SetLocal(0),
             OpCode::Jump(1),
+            OpCode::PutNil,
+            OpCode::Pop,
             //body
             OpCode::Label(2),
             OpCode::GetLocal(0),
@@ -108,17 +110,22 @@ mod tests {
             OpCode::PutObject(300000000),
             OpCode::OptLt,
             OpCode::BranchIf(2),
+            OpCode::PutNil,
+            OpCode::Pop,
+            OpCode::GetLocal(0),
             OpCode::Leave
         ];
 
         MethodTranslator::new().translate(&mut func, opcodes).unwrap();
     }
 
+
+
     #[test]
     fn it_previews() {
         let sig = Signature {
             params: vec![],
-            returns: vec![],
+            returns: vec![AbiParam::new(I64)],
             call_conv: CallConv::SystemV,
         };
 
@@ -126,6 +133,6 @@ mod tests {
         let func_id = module.declare_function("test".into(), Linkage::Local, &sig).unwrap();
         let mut func = Function::with_name_signature(ExternalName::user(0, func_id.as_u32()), sig);
 
-        let preview: String = MethodTranslator::new().preview(&mut func, vec![]).unwrap();
+        let preview: String = MethodTranslator::new().preview(&mut func, vec![OpCode::PutNil,OpCode::Leave]).unwrap();
     }
 }
