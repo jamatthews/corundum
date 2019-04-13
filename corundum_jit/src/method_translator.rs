@@ -1,6 +1,6 @@
 use cranelift::prelude::*;
+use cranelift_codegen::ir::{AbiParam,Function};
 use cranelift_codegen::ir::types::I64;
-use cranelift_codegen::ir::Function;
 
 use opcode_translator;
 use opcode::OpCode;
@@ -33,7 +33,6 @@ impl MethodTranslator {
             opcode_translator::translate_code(opcode, &mut builder, &mut self.state);
         }
 
-        builder.ins().return_(&[]);
         builder.seal_all_blocks();
 
         Ok(())
@@ -51,7 +50,6 @@ impl MethodTranslator {
             opcode_translator::translate_code(opcode, &mut builder, &mut self.state);
         }
 
-        builder.ins().return_(&[]);
         builder.seal_all_blocks();
 
         Ok(builder.display(None).to_string())
@@ -84,7 +82,7 @@ mod tests {
     fn it_compiles_while_loops() {
         let sig = Signature {
             params: vec![],
-            returns: vec![],
+            returns: vec![AbiParam::new(I64)],
             call_conv: CallConv::SystemV,
         };
 
@@ -109,7 +107,8 @@ mod tests {
             OpCode::GetLocal(0),
             OpCode::PutObject(300000000),
             OpCode::OptLt,
-            OpCode::BranchIf(2)
+            OpCode::BranchIf(2),
+            OpCode::Leave
         ];
 
         MethodTranslator::new().translate(&mut func, opcodes).unwrap();

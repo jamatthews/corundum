@@ -10,6 +10,7 @@ use helix::sys::*;
 use std::mem;
 
 use method_translator::MethodTranslator;
+use opcode::OpCode;
 
 pub struct JIT {
     module: Module<SimpleJITBackend>,
@@ -43,7 +44,8 @@ impl JIT {
         let func_id = self.module.declare_function(name, Linkage::Local, &sig).unwrap();
         self.codegen_context.func = Function::with_name_signature(ExternalName::user(0, func_id.as_u32()), sig);
 
-        MethodTranslator::new().translate(&mut self.codegen_context.func, vec![]).unwrap();
+        let opcodes = iseq.iter().map(|x| x.into() ).collect();
+        MethodTranslator::new().translate(&mut self.codegen_context.func, opcodes).unwrap();
 
         self.module.define_function(func_id, &mut self.codegen_context).unwrap();
         self.module.finalize_definitions();
@@ -61,7 +63,6 @@ impl JIT {
         let func_id = self.module.declare_function(name, Linkage::Local, &sig).unwrap();
         self.codegen_context.func = Function::with_name_signature(ExternalName::user(0, func_id.as_u32()), sig);
 
-
         let opcodes = iseq.iter().map(|x| x.into() ).collect();
         let ir = MethodTranslator::new().preview(&mut self.codegen_context.func, opcodes).unwrap();
         println!("{}", ir);
@@ -74,13 +75,15 @@ mod tests {
 
     #[test]
     fn it_compiles() {
-        JIT::new().compile("test", &vec![]).unwrap();
+        let bytecode: Vec<Vec<String>> = vec![vec!["putnil".into()], vec!["leave".into()]];
+        JIT::new().compile("test", &bytecode).unwrap();
         ()
     }
 
     #[test]
     fn it_previews() {
-        JIT::new().preview("test", &vec![]);
+        let bytecode: Vec<Vec<String>> = vec![vec!["putnil".into()], vec!["leave".into()]];
+        JIT::new().preview("test", &bytecode);
         ()
     }
 }
