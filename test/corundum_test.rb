@@ -21,9 +21,12 @@ class CorundumTest < Minitest::Test
     assert_equal 3_000_000, Corundum.run(self, :while_loop)
   end
 
-
+  def test_argument
+    assert_equal 2, Corundum.run(self, :argument, [1])
+  end
 
   private
+
   def empty
   end
 
@@ -39,5 +42,9 @@ class CorundumTest < Minitest::Test
       i = i + 1
     end
     i
+  end
+
+  def argument(x)
+    x + 1
   end
 end

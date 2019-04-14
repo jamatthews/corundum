@@ -10,18 +10,18 @@ class Corundum
 
   VERSION = "0.1.0"
 
-  def self.preview(receiver, name)
+  def self.preview(receiver, name, args = [])
     method = receiver.method(name)
     iseq = RubyVM::InstructionSequence.of(method)
     return false if iseq.nil?
-    preview_cranelift_ir("#{receiver.class.name}#{name}", stringify_iseq(iseq))
+    preview_cranelift_ir("#{receiver.class.name}#{name}", stringify_iseq(iseq), args)
   end
 
-  def self.run(receiver, name)
+  def self.run(receiver, name, args = [])
     method = receiver.method(name)
     iseq = RubyVM::InstructionSequence.of(method)
     return false if iseq.nil?
-    compile_and_run("#{receiver.class.name}#{name}", stringify_iseq(iseq))
+    compile_and_run("#{receiver.class.name}#{name}", stringify_iseq(iseq), args)
   end
 
   private

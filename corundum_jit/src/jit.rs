@@ -11,7 +11,6 @@ use helix::sys::*;
 use std::mem;
 
 use method_translator::MethodTranslator;
-use opcode::OpCode;
 
 pub struct JIT {
     module: Module<SimpleJITBackend>,
@@ -28,14 +27,14 @@ impl JIT {
         }
     }
 
-    pub fn run(&mut self, name: &str, iseq: &Vec<Vec<String>>) -> i64 {
-        let function = self.compile(name, iseq).unwrap();
+    pub fn run(&mut self, name: &str, iseq: &Vec<Vec<String>>, args: Vec<VALUE>) -> i64 {
+        let function = self.compile(name, iseq, args).unwrap();
         let function = unsafe { mem::transmute::<_, fn() -> i64 >(function) };
         let result = function();
         result
     }
 
-    pub fn compile(&mut self, name: &str, iseq: &Vec<Vec<String>>) -> Result<*const u8, String> {
+    pub fn compile(&mut self, name: &str, iseq: &Vec<Vec<String>>, args: Vec<VALUE>) -> Result<*const u8, String> {
         let sig = Signature {
             params: vec![],
             returns: vec![AbiParam::new(I64)],
@@ -54,7 +53,7 @@ impl JIT {
         Ok(code)
     }
 
-    pub fn preview(&mut self, name: &str, iseq: &Vec<Vec<String>>) -> String {
+    pub fn preview(&mut self, name: &str, iseq: &Vec<Vec<String>>, args: Vec<VALUE>) -> String {
         let sig = Signature {
             params: vec![],
             returns: vec![AbiParam::new(I64)],
@@ -76,14 +75,14 @@ mod tests {
     #[test]
     fn it_compiles() {
         let bytecode: Vec<Vec<String>> = vec![vec!["putnil".into()], vec!["leave".into()]];
-        JIT::new().compile("test", &bytecode).unwrap();
+        JIT::new().compile("test", &bytecode, vec![]).unwrap();
         ()
     }
 
     #[test]
     fn it_previews() {
         let bytecode: Vec<Vec<String>> = vec![vec!["putnil".into()], vec!["leave".into()]];
-        JIT::new().preview("test", &bytecode);
+        JIT::new().preview("test", &bytecode, vec![]);
         ()
     }
 }
