@@ -18,6 +18,7 @@ name = "corundum"
 version = "0.0.0"
 dependencies = [
  "corundum_jit 0.0.0",
+ "corundum_ruby 0.0.0",
  "helix 0.7.5 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -32,6 +33,13 @@ dependencies = [
  "cranelift-module 0.29.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "cranelift-simplejit 0.29.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "helix 0.7.5 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "corundum_ruby"
+version = "0.0.0"
+dependencies = [
+ "libc 0.2.50 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]

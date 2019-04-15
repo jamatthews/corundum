@@ -7,4 +7,5 @@ crate-type = ["cdylib"]
 
 [dependencies]
 corundum_jit = { path = "corundum_jit" }
+corundum_ruby = { path = "corundum_ruby" }
 helix = "0.7.5"

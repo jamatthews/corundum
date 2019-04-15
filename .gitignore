@@ -10,3 +10,4 @@
 /target/
 /lib/corundum/native.bundle
 /corundum_jit/target/
+/corundum_ruby/target/

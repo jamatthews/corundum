@@ -25,6 +25,10 @@ class CorundumTest < Minitest::Test
     assert_equal 2, Corundum.run(self, :argument, [1])
   end
 
+  def test_thingy
+    assert_equal 2, Corundum.thingy(1, 1)
+  end
+
   private
 
   def empty
