@@ -1,6 +1,9 @@
+use corundum_ruby::fixnum::rb_int2inum;
+use corundum_ruby::value::Value;
+
 #[derive(Debug)]
 pub enum OpCode {
-    PutObject(i64),
+    PutObject(Value),
     SetLocal(u32),
     GetLocal(u32),
     OptPlus,
@@ -16,9 +19,12 @@ pub enum OpCode {
 impl From<&Vec<String>> for OpCode {
     fn from(instruction: &Vec<String>) -> Self {
         match instruction[0].as_str() {
-            "putobject_OP_INT2FIX_O_0_C_" => OpCode::PutObject(0),
-            "putobject_OP_INT2FIX_O_1_C_" => OpCode::PutObject(1),
-            "putobject" => OpCode::PutObject(instruction[1].parse::<i64>().expect("putobj failed")),
+            "putobject_OP_INT2FIX_O_0_C_" => OpCode::PutObject(unsafe{ rb_int2inum(0) }),
+            "putobject_OP_INT2FIX_O_1_C_" => OpCode::PutObject(unsafe{ rb_int2inum(1) }),
+            "putobject" => {
+                let integer = instruction[1].parse::<isize>().expect("parsing integer failed");
+                OpCode::PutObject(unsafe{ rb_int2inum(integer) })
+            },
             "setlocal_OP__WC__0" => OpCode::SetLocal(instruction[1].parse::<u32>().expect("setlocal failed")),
             "jump" => OpCode::Jump(instruction[1].parse::<usize>().expect("jump failed")),
             "putnil" => OpCode::PutNil,

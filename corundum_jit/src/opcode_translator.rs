@@ -7,7 +7,7 @@ use translation_state::TranslationState;
 pub fn translate_code(op: OpCode, builder: &mut FunctionBuilder, state: &mut TranslationState) {
     match op {
         OpCode::PutObject(obj) => {
-            let value = builder.ins().iconst(I64, i64::from(obj));
+            let value = builder.ins().iconst(I64, (&obj as *const _) as i64);
             state.push(value);
         },
         OpCode::SetLocal(index) => {
@@ -18,8 +18,12 @@ pub fn translate_code(op: OpCode, builder: &mut FunctionBuilder, state: &mut Tra
             state.push(builder.use_var(Variable::with_u32(index)))
         },
         OpCode::OptPlus => {
-            let lhs = state.pop();
-            let rhs = state.pop();
+            let lhs_rvalue = state.pop();
+            let rhs_rvalue = state.pop();
+
+            let lhs = builder.ins().load(I64, MemFlags::new(), lhs_rvalue, 0);
+            let rhs = builder.ins().load(I64, MemFlags::new(), rhs_rvalue, 0);
+
             let value = builder.ins().iadd(lhs, rhs);
             state.push(value);
         },

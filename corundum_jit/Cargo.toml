@@ -11,3 +11,4 @@ cranelift-module = "0.29.0"
 cranelift-simplejit = "0.29.0"
 
 helix = "0.7.5"
+corundum_ruby = { path = "../corundum_ruby", features = ["postgres"] } 

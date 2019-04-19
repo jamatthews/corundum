@@ -6,7 +6,6 @@ pub mod typed_data;
 pub mod value;
 
 use types::Value;
-use fixnum::*;
 
 extern {
     pub fn rb_fix_plus_fix(a: Value, b: Value) -> Value;

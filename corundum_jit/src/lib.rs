@@ -7,6 +7,8 @@ extern crate cranelift_simplejit;
 
 extern crate helix;
 
+extern crate corundum_ruby;
+
 pub mod jit;
 
 mod method_translator;

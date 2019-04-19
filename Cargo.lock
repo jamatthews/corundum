@@ -26,6 +26,7 @@ dependencies = [
 name = "corundum_jit"
 version = "0.0.0"
 dependencies = [
+ "corundum_ruby 0.0.0",
  "cranelift 0.29.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "cranelift-codegen 0.29.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "cranelift-entity 0.29.0 (registry+https://github.com/rust-lang/crates.io-index)",

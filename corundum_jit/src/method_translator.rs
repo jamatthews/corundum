@@ -1,5 +1,5 @@
 use cranelift::prelude::*;
-use cranelift_codegen::ir::{AbiParam,Function};
+use cranelift_codegen::ir::Function;
 use cranelift_codegen::ir::types::I64;
 
 use opcode_translator;
