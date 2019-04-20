@@ -1,5 +1,8 @@
 use corundum_ruby::fixnum::rb_int2inum;
-use corundum_ruby::value::Value;
+use corundum_ruby::value::*;
+use corundum_ruby::types::InternalValue;
+
+use NIL;
 
 #[derive(Debug)]
 pub enum OpCode {

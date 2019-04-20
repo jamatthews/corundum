@@ -1,13 +1,21 @@
 use cranelift::prelude::*;
+use cranelift::prelude::Value as Value;
 use cranelift_codegen::ir::types::I64;
+use cranelift_codegen::isa::TargetFrontendConfig;
 
 use opcode::OpCode;
 use translation_state::TranslationState;
 
-pub fn translate_code(op: OpCode, builder: &mut FunctionBuilder, state: &mut TranslationState) {
+use corundum_ruby::value::*;
+use corundum_ruby::value::Value as RValue;
+use corundum_ruby::types::*;
+
+use NIL;
+
+pub fn translate_code(op: OpCode, builder: &mut FunctionBuilder, state: &mut TranslationState, return_pointer: &Value) {
     match op {
         OpCode::PutObject(obj) => {
-            let value = builder.ins().iconst(I64, (&obj as *const _) as i64);
+            let value = builder.ins().iconst(I64, (&obj as *const RValue) as i64);
             state.push(value);
         },
         OpCode::SetLocal(index) => {
@@ -49,13 +57,26 @@ pub fn translate_code(op: OpCode, builder: &mut FunctionBuilder, state: &mut Tra
             builder.ins().brnz(state.pop(), state.get_block(label), &[]);
         },
         OpCode::Leave => {
-            builder.ins().return_(&[state.pop()]);
+            let value = state.pop();
+            // let value1 = builder.ins().load(I64, MemFlags::new(), pointer, 0);
+            // builder.ins().store(MemFlags::new(), value1, *return_pointer, 0);
+            // let value2 = builder.ins().load(I64, MemFlags::new(), pointer, 8);
+            // builder.ins().store(MemFlags::new(), value2, *return_pointer, 8);
+            // let value3 = builder.ins().load(I64, MemFlags::new(), pointer, 16);
+            // builder.ins().store(MemFlags::new(), value3, *return_pointer, 16);
+            // let value4 = builder.ins().load(I64, MemFlags::new(), pointer, 24);
+            // builder.ins().store(MemFlags::new(), value4, *return_pointer, 24);
+            // let value5 = builder.ins().load(I64, MemFlags::new(), pointer, 32);
+            // builder.ins().store(MemFlags::new(), value5, *return_pointer, 32);
+            builder.ins().return_(&[value]);
         },
         OpCode::PutNil => {
             if builder.is_filled() {
                 state.between_blocks = true;
             } else {
-                let value = builder.ins().iconst(I64, i64::from(0));
+                let raw_obj_pointer = (&NIL as *const RValue) as i64;
+                println!("putnil: {:?}", raw_obj_pointer);
+                let value = builder.ins().iconst(I64, (&NIL as *const RValue) as i64);
                 state.push(value);
             }
         },
@@ -66,5 +87,39 @@ pub fn translate_code(op: OpCode, builder: &mut FunctionBuilder, state: &mut Tra
                 state.pop();
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use jit::*;
+    use corundum_ruby::fixnum::rb_int2inum;
+    use NIL;
+
+    #[test]
+    fn putnil_and_leave() {
+        let raw_obj_pointer = (&NIL as *const RValue) as i64;
+        println!("test: {:?}", raw_obj_pointer);
+        let bytecode: Vec<Vec<String>> = vec![vec!["putnil".into()], vec!["leave".into()]];
+        let result = JIT::new().run("test", &bytecode, vec![]);
+        let original = unsafe{ *(raw_obj_pointer as *const RValue) };
+        assert_eq!(NIL, original);
+        assert_eq!(NIL, result)
+    }
+
+    fn putobj_and_leave() {
+        let bytecode: Vec<Vec<String>> = vec![vec!["putobject".into(), "0".into()], vec!["leave".into()]];
+        let expected = unsafe { rb_int2inum(0) };
+        let result = JIT::new().run("test", &bytecode, vec![]);
+        assert!(result.is_fixnum())
+    }
+
+    #[test]
+    fn my_sanity() {
+        let raw_obj_pointer = (&NIL as *const RValue) as i64;
+        let original = unsafe{ *(raw_obj_pointer as *const RValue) };
+        assert_eq!(NIL, original);
+        assert!(original.is_nil())
     }
 }

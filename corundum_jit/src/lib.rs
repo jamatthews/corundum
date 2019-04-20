@@ -15,3 +15,8 @@ mod method_translator;
 mod opcode;
 mod opcode_translator;
 mod translation_state;
+
+use corundum_ruby::types::*;
+use corundum_ruby::value::*;
+
+pub static NIL: Value = Value{ value: RubySpecialConsts::Nil as InternalValue };

@@ -24,13 +24,16 @@ impl MethodTranslator {
         let mut builder = FunctionBuilder::new(function, &mut self.builder_context);
 
         setup_basic_blocks(&opcodes, &mut builder, &mut self.state);
-        builder.switch_to_block(self.state.get_block(0));
+        let block = self.state.get_block(0);
+        builder.switch_to_block(block);
+        builder.append_ebb_params_for_function_params(block);
+        let return_pointer = builder.ebb_params(block)[0];
         builder.ensure_inserted_ebb();
 
         builder.declare_var(Variable::with_u32(3), I64);
 
         for opcode in opcodes {
-            opcode_translator::translate_code(opcode, &mut builder, &mut self.state);
+            opcode_translator::translate_code(opcode, &mut builder, &mut self.state, &return_pointer);
         }
 
         builder.seal_all_blocks();
@@ -42,12 +45,16 @@ impl MethodTranslator {
         let mut builder = FunctionBuilder::new(function, &mut self.builder_context);
 
         setup_basic_blocks(&opcodes, &mut builder, &mut self.state);
-        builder.switch_to_block(self.state.get_block(0));
+        let block = self.state.get_block(0);
+        builder.switch_to_block(block);
+        builder.append_ebb_params_for_function_params(block);
+        let return_pointer = builder.ebb_params(block)[0];
+        builder.ensure_inserted_ebb();
 
         builder.declare_var(Variable::with_u32(3), I64);
 
         for opcode in opcodes {
-            opcode_translator::translate_code(opcode, &mut builder, &mut self.state);
+            opcode_translator::translate_code(opcode, &mut builder, &mut self.state, &return_pointer);
         }
 
         builder.seal_all_blocks();

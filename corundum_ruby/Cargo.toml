@@ -8,3 +8,6 @@ links = "ruby"
 
 [dependencies]
 libc = "*"
+
+[features]
+test = []
