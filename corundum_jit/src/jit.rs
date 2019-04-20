@@ -31,17 +31,14 @@ impl JIT {
 
     pub fn run(&mut self, name: &str, iseq: &Vec<Vec<String>>, args: Vec<VALUE>) -> RValue {
         let function = self.compile(name, iseq, args).unwrap();
-        let function = unsafe { mem::transmute::<_, fn() -> i64 >(function) };
-        let raw_obj_pointer = unsafe { function() } ;
-        println!("returned: {:?}", raw_obj_pointer);
-        let result: RValue = unsafe { *(raw_obj_pointer as *const RValue) };
-        result
+        let function = unsafe { mem::transmute::<_, fn() -> RValue >(function) };
+        unsafe { function() }
     }
 
     pub fn compile(&mut self, name: &str, iseq: &Vec<Vec<String>>, args: Vec<VALUE>) -> Result<*const u8, String> {
         let sig = Signature {
             params: vec![AbiParam::new(I64)],
-            returns: vec![AbiParam::new(I64)],
+            returns: vec![],
             call_conv: CallConv::SystemV,
         };
 
@@ -60,7 +57,7 @@ impl JIT {
     pub fn preview(&mut self, name: &str, iseq: &Vec<Vec<String>>, args: Vec<VALUE>) -> String {
         let sig = Signature {
             params: vec![AbiParam::new(I64)],
-            returns: vec![AbiParam::new(I64)],
+            returns: vec![],
             call_conv: CallConv::SystemV,
         };
 

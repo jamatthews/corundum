@@ -57,25 +57,24 @@ pub fn translate_code(op: OpCode, builder: &mut FunctionBuilder, state: &mut Tra
             builder.ins().brnz(state.pop(), state.get_block(label), &[]);
         },
         OpCode::Leave => {
-            let value = state.pop();
-            // let value1 = builder.ins().load(I64, MemFlags::new(), pointer, 0);
-            // builder.ins().store(MemFlags::new(), value1, *return_pointer, 0);
-            // let value2 = builder.ins().load(I64, MemFlags::new(), pointer, 8);
-            // builder.ins().store(MemFlags::new(), value2, *return_pointer, 8);
-            // let value3 = builder.ins().load(I64, MemFlags::new(), pointer, 16);
-            // builder.ins().store(MemFlags::new(), value3, *return_pointer, 16);
-            // let value4 = builder.ins().load(I64, MemFlags::new(), pointer, 24);
-            // builder.ins().store(MemFlags::new(), value4, *return_pointer, 24);
-            // let value5 = builder.ins().load(I64, MemFlags::new(), pointer, 32);
-            // builder.ins().store(MemFlags::new(), value5, *return_pointer, 32);
-            builder.ins().return_(&[value]);
+            let pointer = state.pop();
+            let value1 = builder.ins().load(I64, MemFlags::new(), pointer, 32);
+            builder.ins().store(MemFlags::new(), value1, *return_pointer, 0);
+            let value2 = builder.ins().load(I64, MemFlags::new(), pointer, 24);
+            builder.ins().store(MemFlags::new(), value2, *return_pointer, 8);
+            let value3 = builder.ins().load(I64, MemFlags::new(), pointer, 16);
+            builder.ins().store(MemFlags::new(), value3, *return_pointer, 16);
+            let value4 = builder.ins().load(I64, MemFlags::new(), pointer, 8);
+            builder.ins().store(MemFlags::new(), value4, *return_pointer, 24);
+            let value5 = builder.ins().load(I64, MemFlags::new(), pointer, 0);
+            builder.ins().store(MemFlags::new(), value5, *return_pointer, 32);
+            builder.ins().return_(&[]);
         },
         OpCode::PutNil => {
             if builder.is_filled() {
                 state.between_blocks = true;
             } else {
                 let raw_obj_pointer = (&NIL as *const RValue) as i64;
-                println!("putnil: {:?}", raw_obj_pointer);
                 let value = builder.ins().iconst(I64, (&NIL as *const RValue) as i64);
                 state.push(value);
             }
