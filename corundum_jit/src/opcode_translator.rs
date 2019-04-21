@@ -74,7 +74,8 @@ pub fn translate_code(op: OpCode, builder: &mut FunctionBuilder, state: &mut Tra
             if builder.is_filled() {
                 state.between_blocks = true;
             } else {
-                let raw_obj_pointer = (&NIL as *const RValue) as i64;
+                let obj = RValue { value: RubySpecialConsts::Nil as InternalValue };
+                let raw_obj_pointer = (&obj as *const RValue) as i64;
                 let value = builder.ins().iconst(I64, (&NIL as *const RValue) as i64);
                 state.push(value);
             }
