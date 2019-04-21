@@ -18,5 +18,6 @@ mod translation_state;
 
 use corundum_ruby::types::*;
 use corundum_ruby::value::*;
+use corundum_ruby::fixnum::rb_int2inum;
 
 pub static NIL: Value = Value{ value: RubySpecialConsts::Nil as InternalValue };

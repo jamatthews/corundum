@@ -74,8 +74,6 @@ pub fn translate_code(op: OpCode, builder: &mut FunctionBuilder, state: &mut Tra
             if builder.is_filled() {
                 state.between_blocks = true;
             } else {
-                let obj = RValue { value: RubySpecialConsts::Nil as InternalValue };
-                let raw_obj_pointer = (&obj as *const RValue) as i64;
                 let value = builder.ins().iconst(I64, (&NIL as *const RValue) as i64);
                 state.push(value);
             }
@@ -94,7 +92,7 @@ pub fn translate_code(op: OpCode, builder: &mut FunctionBuilder, state: &mut Tra
 mod tests {
     use super::*;
     use jit::*;
-    use corundum_ruby::fixnum::rb_int2inum;
+    use corundum_ruby::fixnum::*;
     use NIL;
 
     #[test]
@@ -103,23 +101,15 @@ mod tests {
         println!("test: {:?}", raw_obj_pointer);
         let bytecode: Vec<Vec<String>> = vec![vec!["putnil".into()], vec!["leave".into()]];
         let result = JIT::new().run("test", &bytecode, vec![]);
-        let original = unsafe{ *(raw_obj_pointer as *const RValue) };
-        assert_eq!(NIL, original);
-        assert_eq!(NIL, result)
-    }
-
-    fn putobj_and_leave() {
-        let bytecode: Vec<Vec<String>> = vec![vec!["putobject".into(), "0".into()], vec!["leave".into()]];
-        let expected = unsafe { rb_int2inum(0) };
-        let result = JIT::new().run("test", &bytecode, vec![]);
-        assert!(result.is_fixnum())
+        assert!(result.is_nil())
     }
 
     #[test]
-    fn my_sanity() {
-        let raw_obj_pointer = (&NIL as *const RValue) as i64;
-        let original = unsafe{ *(raw_obj_pointer as *const RValue) };
-        assert_eq!(NIL, original);
-        assert!(original.is_nil())
+    fn putobj_and_leave() {
+        let bytecode: Vec<Vec<String>> = vec![vec!["putobject".into(), "0".into()], vec!["leave".into()]];
+        let result = JIT::new().run("test", &bytecode, vec![]);
+        println!("{:?}", result);
+        assert!(result.is_fixnum());
+        assert_eq!(0, unsafe{ rb_num2int(result) })
     }
 }
