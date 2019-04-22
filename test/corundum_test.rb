@@ -5,29 +5,29 @@ class CorundumTest < Minitest::Test
     refute_nil ::Corundum::VERSION
   end
 
-  def test_preview
-    Corundum.preview(self, :empty).is_a?(String)
-  end
-
+  # def test_preview
+  #   Corundum.preview(self, :empty).is_a?(String)
+  # end
+  #
   def test_run
     assert_equal 0, Corundum.run(self, :empty)
   end
+  #
+  # def test_run_variable
+  #   assert_equal 2, Corundum.run(self, :variable)
+  # end
+  #
+  # def test_run_while_loop
+  #   assert_equal 3_000_000, Corundum.run(self, :while_loop)
+  # end
+  #
+  # def test_argument
+  #   assert_equal 2, Corundum.run(self, :argument, [1])
+  # end
 
-  def test_run_variable
-    assert_equal 2, Corundum.run(self, :variable)
-  end
-
-  def test_run_while_loop
-    assert_equal 3_000_000, Corundum.run(self, :while_loop)
-  end
-
-  def test_argument
-    assert_equal 2, Corundum.run(self, :argument, [1])
-  end
-
-  def test_thingy
-    assert_equal 2, Corundum.thingy(1, 1)
-  end
+  # def test_preview_iseqw
+  #   Corundum.preview_iseqw(self, :empty)
+  # end
 
   private
 

@@ -4,6 +4,7 @@ pub mod fixnum;
 pub mod types;
 pub mod typed_data;
 pub mod value;
+pub mod vm;
 
 use types::Value;
 

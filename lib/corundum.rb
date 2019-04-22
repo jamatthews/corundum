@@ -24,6 +24,12 @@ class Corundum
     compile_and_run("#{receiver.class.name}#{name}", stringify_iseq(iseq), args)
   end
 
+  def self.preview_iseqw(receiver, name)
+    method = receiver.method(:empty)
+    iseqw = RubyVM::InstructionSequence.of(method)
+    print_iseqw(iseqw)
+  end
+
   private
 
   def self.stringify_iseq(iseq)
