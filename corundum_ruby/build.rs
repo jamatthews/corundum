@@ -17,8 +17,6 @@ fn rbconfig(key: &str) -> String {
 }
 
 fn main() {
-    if cfg!(feature="test") {
-        println!("cargo:rustc-link-search={}", rbconfig("libdir"));
-        println!("cargo:rustc-link-lib=dylib={}", rbconfig("RUBY_SO_NAME"));
-    }
+    println!("cargo:rustc-link-search={}", rbconfig("libdir"));
+    println!("cargo:rustc-link-lib=dylib={}", rbconfig("RUBY_SO_NAME"));
 }

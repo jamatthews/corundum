@@ -4,6 +4,7 @@ version = "0.0.0"
 
 [lib]
 crate-type = ["cdylib"]
+links = "helix_runtime"
 
 [dependencies]
 corundum_jit = { path = "corundum_jit" }

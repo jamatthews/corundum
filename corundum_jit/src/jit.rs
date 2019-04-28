@@ -31,7 +31,7 @@ impl JIT {
 
     pub fn run(&mut self, name: &str, iseq: &Vec<Vec<String>>, args: Vec<VALUE>) -> RValue {
         let function = self.compile(name, iseq, args).unwrap();
-        let function = unsafe { mem::transmute::<_, fn() -> RValue >(function) };
+        let function = unsafe { mem::transmute::<_, extern "C" fn() -> RValue >(function) };
         unsafe { function() }
     }
 
