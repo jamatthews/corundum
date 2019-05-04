@@ -1,5 +1,7 @@
-#[macro_use]
-extern crate derivative;
+#![allow(non_upper_case_globals)]
+#![allow(non_camel_case_types)]
+#![allow(non_snake_case)]
+
 extern crate libc;
 
 pub mod fixnum;
@@ -13,3 +15,5 @@ use types::Value;
 extern {
     pub fn rb_fix_plus_fix(a: Value, b: Value) -> Value;
 }
+
+include!(concat!(env!("OUT_DIR"), "/bindings.rs"));

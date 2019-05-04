@@ -12,4 +12,6 @@ cranelift-simplejit = "0.29.0"
 
 helix = "0.7.5"
 
+target-lexicon = "*"
+
 corundum_ruby = { path = "../corundum_ruby", features = ["test"]}

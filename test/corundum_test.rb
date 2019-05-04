@@ -9,9 +9,9 @@ class CorundumTest < Minitest::Test
   #   Corundum.preview(self, :empty).is_a?(String)
   # end
   #
-  # def test_run
-  #   assert_equal 0, Corundum.run(self, :empty)
-  # end
+  def test_run
+     assert_nil, Corundum.run(self, :empty)
+  end
   #
   # def test_run_variable
   #   assert_equal 2, Corundum.run(self, :variable)
@@ -29,11 +29,11 @@ class CorundumTest < Minitest::Test
   #   Corundum.preview_iseqw(self, :empty)
   # end
 
-  def test_preview_iseqw_to_iseq
-    method = self.method(:while_loop)
-    iseqw = RubyVM::InstructionSequence.of(method)
-    Corundum.preview_iseqw_to_iseq(iseqw)
-  end
+  # def test_preview_iseqw_to_iseq
+  #   method = self.method(:while_loop)
+  #   iseqw = RubyVM::InstructionSequence.of(method)
+  #   Corundum.preview_iseqw_to_iseq(iseqw)
+  # end
 
   private
 

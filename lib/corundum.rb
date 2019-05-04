@@ -19,9 +19,9 @@ class Corundum
 
   def self.run(receiver, name, args = [])
     method = receiver.method(name)
-    iseq = RubyVM::InstructionSequence.of(method)
-    return false if iseq.nil?
-    compile_and_run("#{receiver.class.name}#{name}", stringify_iseq(iseq), args)
+    iseqw = RubyVM::InstructionSequence.of(method)
+    return false if iseqw.nil?
+    compile_and_run("#{receiver.class.name}#{name}", iseqw)
   end
 
   private
