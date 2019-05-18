@@ -2,10 +2,10 @@ use cranelift::prelude::*;
 use cranelift_codegen::ir::Function;
 use cranelift_codegen::ir::types::I64;
 
+use opcode::OpCode;
 use opcode_translator;
 use translation_state::TranslationState;
 use corundum_ruby::rb_iseq_t;
-use corundum_ruby::rb_vm_insn_addr2insn;
 
 pub struct MethodTranslator {
     builder_context: FunctionBuilderContext,
@@ -33,14 +33,15 @@ impl MethodTranslator {
 
         builder.declare_var(Variable::with_u32(3), I64);
 
-        unsafe {
-            for i in 0..(*iseq.body).iseq_size {
-                let ptr = *(*iseq.body).iseq_encoded.offset(i as isize);
-                let opcode = rb_vm_insn_addr2insn(ptr as *const _);
-                opcode_translator::translate_code(opcode, &mut builder, &mut self.state, &return_pointer);
-            }
+        let mut i = 0;
+        let max = unsafe { (*iseq.body).iseq_size };
+        println!("iseq_size: {}", max);
+        while i < max {
+            let ptr = unsafe { *(*iseq.body).iseq_encoded.offset(i as isize) };
+            let opcode: OpCode = ptr.into();
+            i += opcode.size();
+            opcode_translator::translate_code(opcode, &mut builder, &mut self.state, &return_pointer);
         }
-
 
         builder.seal_all_blocks();
         //println!("{}", builder.display(None).to_string());
@@ -60,12 +61,10 @@ impl MethodTranslator {
 
         builder.declare_var(Variable::with_u32(3), I64);
 
-        unsafe {
-            for i in 0..(*iseq.body).iseq_size {
-                let ptr = *(*iseq.body).iseq_encoded.offset(i as isize);
-                let opcode = rb_vm_insn_addr2insn(ptr as *const _);
-                opcode_translator::translate_code(opcode, &mut builder, &mut self.state, &return_pointer);
-            }
+        let max = unsafe { (*iseq.body).iseq_size };
+        for i in 0..max {
+            let ptr = unsafe { *(*iseq.body).iseq_encoded.offset(i as isize) };
+            opcode_translator::translate_code(ptr.into(), &mut builder, &mut self.state, &return_pointer);
         }
 
         builder.seal_all_blocks();

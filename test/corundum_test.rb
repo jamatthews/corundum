@@ -10,12 +10,12 @@ class CorundumTest < Minitest::Test
   # end
   #
   def test_run
-     assert_nil, Corundum.run(self, :empty)
+    assert_nil Corundum.run(self, :empty)
   end
   #
-  # def test_run_variable
-  #   assert_equal 2, Corundum.run(self, :variable)
-  # end
+  def test_run_variable
+    assert_equal 1, Corundum.run(self, :variable)
+  end
   #
   # def test_run_while_loop
   #   assert_equal 3_000_000, Corundum.run(self, :while_loop)
@@ -29,10 +29,10 @@ class CorundumTest < Minitest::Test
   #   Corundum.preview_iseqw(self, :empty)
   # end
 
-  # def test_preview_iseqw_to_iseq
-  #   method = self.method(:while_loop)
+  # def test_disasm_iseqw
+  #   method = self.method(:variable)
   #   iseqw = RubyVM::InstructionSequence.of(method)
-  #   Corundum.preview_iseqw_to_iseq(iseqw)
+  #   puts iseqw.disasm
   # end
 
   private
@@ -41,8 +41,7 @@ class CorundumTest < Minitest::Test
   end
 
   def variable
-    a = 1
-    a = a + 1
+    a = 0
     a
   end
 

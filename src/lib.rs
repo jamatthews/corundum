@@ -4,7 +4,6 @@ extern crate corundum_ruby;
 extern crate corundum_jit;
 
 use helix::sys::VALUE as HVALUE;
-use helix::sys::Qnil;
 use corundum_ruby::value::Value as RValue;
 use corundum_ruby::*;
 

@@ -1,41 +1,37 @@
-use corundum_ruby::fixnum::rb_int2inum;
-use corundum_ruby::value::*;
+use corundum_ruby::rb_vm_insn_addr2insn;
 
 #[derive(Debug)]
 pub enum OpCode {
-    PutObject(Value),
-    SetLocal(u32),
-    GetLocal(u32),
-    OptPlus,
-    OptLt,
-    Jump(usize),
-    Label(usize),
-    BranchIf(usize),
-    PutNil,
-    Pop,
     Leave,
+    PutNil,
+    PutObjectInt2Fix0,
+    SetLocalWc0(u32),
+    GetLocalWc0(u32)
 }
 
-impl From<&Vec<String>> for OpCode {
-    fn from(instruction: &Vec<String>) -> Self {
-        match instruction[0].as_str() {
-            "putobject_OP_INT2FIX_O_0_C_" => OpCode::PutObject(unsafe{ rb_int2inum(0) }),
-            "putobject_OP_INT2FIX_O_1_C_" => OpCode::PutObject(unsafe{ rb_int2inum(1) }),
-            "putobject" => {
-                let integer = instruction[1].parse::<isize>().expect("parsing integer failed");
-                OpCode::PutObject(unsafe{ rb_int2inum(integer) })
-            },
-            "setlocal_OP__WC__0" => OpCode::SetLocal(instruction[1].parse::<u32>().expect("setlocal failed")),
-            "jump" => OpCode::Jump(instruction[1].parse::<usize>().expect("jump failed")),
-            "putnil" => OpCode::PutNil,
-            "label" => OpCode::Label(instruction[1].parse::<usize>().expect("putobj failed")),
-            "pop" => OpCode::Pop,
-            "getlocal_OP__WC__0" => OpCode::GetLocal(instruction[1].parse::<u32>().expect("getlocal failed")),
-            "opt_plus" => OpCode::OptPlus,
-            "branchif" => OpCode::BranchIf(instruction[1].parse::<usize>().expect("branchif failed")),
-            "leave" => OpCode::Leave,
-            "opt_lt" => OpCode::OptLt,
-            x => panic!("unknown opcode: {}", x),
+impl From<u64> for OpCode {
+    fn from(pointer: u64) -> Self {
+        let insn: i32 = unsafe { rb_vm_insn_addr2insn(pointer as *const _) };
+        match insn {
+            16 => OpCode::PutNil,
+            // 18 => {
+            //     let first_arg_pointer = (pointer + 1) as *const _;
+            //     OpCode::SetLocal(*first_arg_pointer)
+            // }
+            57 => OpCode::Leave,
+            95 => { OpCode::GetLocalWc0(3) },
+            97 => { OpCode::SetLocalWc0(3) },
+            99 => OpCode::PutObjectInt2Fix0,
+             _ => { panic!("Unknown opcode: {:?}", insn) }
+        }
+    }
+}
+
+impl OpCode {
+    pub fn size(&self) -> u32 {
+        match *self {
+            OpCode::SetLocalWc0(_)|OpCode::GetLocalWc0(_) => 2,
+            _ => 1
         }
     }
 }

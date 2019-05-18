@@ -1,11 +1,12 @@
 use cranelift::prelude::*;
 use cranelift_codegen::ir::types::I64;
 
-use translation_state::TranslationState;
-
 use helix::sys::Qnil;
 
-pub fn translate_code(op: i32, builder: &mut FunctionBuilder, state: &mut TranslationState, _return_pointer: &Value) {
+use opcode::OpCode;
+use translation_state::TranslationState;
+
+pub fn translate_code(op: OpCode, builder: &mut FunctionBuilder, state: &mut TranslationState, _return_pointer: &Value) {
     match op {
         // OpCode::PutObject(obj) => {
         //     let value = builder.ins().iconst(I64, (&obj as *const RValue) as i64);
@@ -49,13 +50,13 @@ pub fn translate_code(op: i32, builder: &mut FunctionBuilder, state: &mut Transl
         // OpCode::BranchIf(label) => {
         //     builder.ins().brnz(state.pop(), state.get_block(label), &[]);
         // },
-        57 => {  //leave
+        OpCode::Leave => {  //leave
             let pointer = state.pop();
             let value1 = builder.ins().load(I64, MemFlags::new(), pointer, 0);
             let value2 = builder.ins().load(I64, MemFlags::new(), pointer, 8);
             builder.ins().return_(&[value1, value2]);
         },
-        16 => { //putnil
+        OpCode::PutNil => { //putnil
             if builder.is_filled() {
                 state.between_blocks = true;
             } else {
@@ -63,6 +64,18 @@ pub fn translate_code(op: i32, builder: &mut FunctionBuilder, state: &mut Transl
                 state.push(value);
             }
         },
+        OpCode::PutObjectInt2Fix0 => {
+            let value = builder.ins().iconst(I64, unsafe{ (&Qnil as *const _) as i64 });
+            state.push(value);
+        },
+        OpCode::SetLocalWc0(index) => {
+            let value = state.pop();
+            builder.def_var(Variable::with_u32(index), value);
+        },
+        OpCode::GetLocalWc0(index) => {
+             state.push(builder.use_var(Variable::with_u32(index)))
+        },
+
         // OpCode::Pop => {
         //     if state.between_blocks {
         //         state.between_blocks = false;
@@ -70,8 +83,5 @@ pub fn translate_code(op: i32, builder: &mut FunctionBuilder, state: &mut Transl
         //         state.pop();
         //     }
         // }
-        x => {
-            panic!("Unknown opcode: {}", x);
-        }
     }
 }
