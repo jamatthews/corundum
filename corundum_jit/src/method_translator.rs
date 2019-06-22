@@ -35,10 +35,10 @@ impl MethodTranslator {
 
         let mut i = 0;
         let max = unsafe { (*iseq.body).iseq_size };
-        println!("iseq_size: {}", max);
         while i < max {
-            let ptr = unsafe { *(*iseq.body).iseq_encoded.offset(i as isize) };
-            let opcode: OpCode = ptr.into();
+            let insn_ptr = unsafe { (*iseq.body).iseq_encoded.offset(i as isize) };
+            let operands_ptr = unsafe { (*iseq.body).iseq_encoded.offset((i+1) as isize) };
+            let opcode: OpCode = (insn_ptr, operands_ptr).into();
             i += opcode.size();
             opcode_translator::translate_code(opcode, &mut builder, &mut self.state, &return_pointer);
         }
@@ -61,10 +61,14 @@ impl MethodTranslator {
 
         builder.declare_var(Variable::with_u32(3), I64);
 
+        let mut i = 0;
         let max = unsafe { (*iseq.body).iseq_size };
-        for i in 0..max {
-            let ptr = unsafe { *(*iseq.body).iseq_encoded.offset(i as isize) };
-            opcode_translator::translate_code(ptr.into(), &mut builder, &mut self.state, &return_pointer);
+        while i < max {
+            let insn_ptr = unsafe { (*iseq.body).iseq_encoded.offset(i as isize) };
+            let operands_ptr = unsafe { (*iseq.body).iseq_encoded.offset((i+1) as isize) };
+            let opcode: OpCode = (insn_ptr, operands_ptr).into();
+            i += opcode.size();
+            opcode_translator::translate_code(opcode, &mut builder, &mut self.state, &return_pointer);
         }
 
         builder.seal_all_blocks();

@@ -1,4 +1,6 @@
+use corundum_ruby::rb_fix2int;
 use corundum_ruby::rb_vm_insn_addr2insn;
+use corundum_ruby::value::Value;
 
 #[derive(Debug)]
 pub enum OpCode {
@@ -9,9 +11,10 @@ pub enum OpCode {
     GetLocalWc0(u32)
 }
 
-impl From<u64> for OpCode {
-    fn from(pointer: u64) -> Self {
-        let insn: i32 = unsafe { rb_vm_insn_addr2insn(pointer as *const _) };
+impl From<(*const u64, *const u64)> for OpCode {
+    fn from(pointers: (*const u64, *const u64)) -> Self {
+        let insn: i32 = unsafe { rb_vm_insn_addr2insn(*pointers.0 as *const _) };
+
         match insn {
             16 => OpCode::PutNil,
             // 18 => {
@@ -19,8 +22,8 @@ impl From<u64> for OpCode {
             //     OpCode::SetLocal(*first_arg_pointer)
             // }
             57 => OpCode::Leave,
-            95 => { OpCode::GetLocalWc0(3) },
-            97 => { OpCode::SetLocalWc0(3) },
+            95 => OpCode::GetLocalWc0(unsafe { *pointers.1 } as u32),
+            97 => { OpCode::SetLocalWc0(unsafe { *pointers.1 } as u32) },
             99 => OpCode::PutObjectInt2Fix0,
              _ => { panic!("Unknown opcode: {:?}", insn) }
         }

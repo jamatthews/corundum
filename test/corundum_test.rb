@@ -13,9 +13,13 @@ class CorundumTest < Minitest::Test
     assert_nil Corundum.run(self, :empty)
   end
   #
-  def test_run_variable
-    assert_equal 1, Corundum.run(self, :variable)
+  def test_run_variable_nil
+    assert_equal nil, Corundum.run(self, :variable_nil)
   end
+
+  # def test_run_variable_zero
+  #   assert_equal 0, Corundum.run(self, :variable_zero)
+  # end
   #
   # def test_run_while_loop
   #   assert_equal 3_000_000, Corundum.run(self, :while_loop)
@@ -40,7 +44,12 @@ class CorundumTest < Minitest::Test
   def empty
   end
 
-  def variable
+  def variable_nil
+    a = nil
+    a
+  end
+
+  def variable_zero
     a = 0
     a
   end

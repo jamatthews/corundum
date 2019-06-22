@@ -3,6 +3,8 @@ use cranelift_codegen::ir::types::I64;
 
 use helix::sys::Qnil;
 
+use corundum_ruby::fixnum::rb_int2inum;
+
 use opcode::OpCode;
 use translation_state::TranslationState;
 
@@ -65,7 +67,8 @@ pub fn translate_code(op: OpCode, builder: &mut FunctionBuilder, state: &mut Tra
             }
         },
         OpCode::PutObjectInt2Fix0 => {
-            let value = builder.ins().iconst(I64, unsafe{ (&Qnil as *const _) as i64 });
+            let rvalue = unsafe { rb_int2inum(0) };
+            let value = builder.ins().iconst(I64, (&rvalue as *const _) as i64);
             state.push(value);
         },
         OpCode::SetLocalWc0(index) => {
