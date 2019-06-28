@@ -4,11 +4,12 @@ use corundum_ruby::value::Value;
 
 #[derive(Debug)]
 pub enum OpCode {
-    Leave,
     PutNil,
-    PutObjectInt2Fix0,
+    Leave,
+    GetLocalWc0(u32),
     SetLocalWc0(u32),
-    GetLocalWc0(u32)
+    PutObjectInt2Fix0,
+    PutObjectInt2Fix1,
 }
 
 impl From<(*const u64, *const u64)> for OpCode {
@@ -25,6 +26,7 @@ impl From<(*const u64, *const u64)> for OpCode {
             95 => OpCode::GetLocalWc0(unsafe { *pointers.1 } as u32),
             97 => { OpCode::SetLocalWc0(unsafe { *pointers.1 } as u32) },
             99 => OpCode::PutObjectInt2Fix0,
+            100 => OpCode::PutObjectInt2Fix1,
              _ => { panic!("Unknown opcode: {:?}", insn) }
         }
     }

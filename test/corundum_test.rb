@@ -20,6 +20,10 @@ class CorundumTest < Minitest::Test
   def test_run_variable_zero
     assert_equal 0, Corundum.run(self, :variable_zero)
   end
+
+  def test_run_variable_one
+    assert_equal 1, Corundum.run(self, :variable_one)
+  end
   #
   # def test_run_while_loop
   #   assert_equal 3_000_000, Corundum.run(self, :while_loop)
@@ -51,6 +55,11 @@ class CorundumTest < Minitest::Test
 
   def variable_zero
     a = 0
+    a
+  end
+
+  def variable_one
+    a = 1
     a
   end
 

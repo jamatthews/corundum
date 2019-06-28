@@ -63,17 +63,22 @@ pub fn translate_code(op: OpCode, builder: &mut FunctionBuilder, state: &mut Tra
                 state.push(value);
             }
         },
-        OpCode::PutObjectInt2Fix0 => {
-            let zero = unsafe { rb_int2inum(0) };
-            let value = builder.ins().iconst(I64, zero.value as i64);
-            state.push(value);
-        },
         OpCode::SetLocalWc0(index) => {
             let value = state.pop();
             builder.def_var(Variable::with_u32(index), value);
         },
         OpCode::GetLocalWc0(index) => {
              state.push(builder.use_var(Variable::with_u32(index)))
+        },
+        OpCode::PutObjectInt2Fix0 => {
+            let zero = unsafe { rb_int2inum(0) };
+            let value = builder.ins().iconst(I64, zero.value as i64);
+            state.push(value);
+        },
+        OpCode::PutObjectInt2Fix1 => {
+            let zero = unsafe { rb_int2inum(1) };
+            let value = builder.ins().iconst(I64, zero.value as i64);
+            state.push(value);
         },
 
         // OpCode::Pop => {
