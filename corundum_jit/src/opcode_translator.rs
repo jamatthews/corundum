@@ -54,11 +54,16 @@ pub fn translate_code(op: OpCode, builder: &mut FunctionBuilder, state: &mut Tra
             }
         },
         OpCode::OptPlus => {
-            let lhs = state.pop();
-            let rhs = state.pop();
+            let lhs_value = state.pop();
+            let rhs_value = state.pop();
 
-            //now we either need to call the CRuby function or implement this in Cranelift IR
-            let value = builder.ins().iadd(lhs, rhs);
+            //VALUE has the lowest bit set to 1 to flag integers
+            let lhs_int = builder.ins().ushr_imm(lhs_value, 1);
+            let rhs_int = builder.ins().ushr_imm(rhs_value, 1);
+            let result_int = builder.ins().iadd(lhs_int, rhs_int);
+            let value = builder.ins().ishl_imm(result_int, 1);
+            let value = builder.ins().iadd_imm(value, 1);
+
             state.push(value);
         },
         OpCode::SetLocalWc0(index) => {
