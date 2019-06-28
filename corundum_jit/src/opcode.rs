@@ -6,6 +6,7 @@ use corundum_ruby::value::Value;
 pub enum OpCode {
     PutNil,
     Leave,
+    OptPlus,
     GetLocalWc0(u32),
     SetLocalWc0(u32),
     PutObjectInt2Fix0,
@@ -23,6 +24,7 @@ impl From<(*const u64, *const u64)> for OpCode {
             //     OpCode::SetLocal(*first_arg_pointer)
             // }
             57 => OpCode::Leave,
+            67 => OpCode::OptPlus,
             95 => OpCode::GetLocalWc0(unsafe { *pointers.1 } as u32),
             97 => { OpCode::SetLocalWc0(unsafe { *pointers.1 } as u32) },
             99 => OpCode::PutObjectInt2Fix0,
@@ -35,6 +37,7 @@ impl From<(*const u64, *const u64)> for OpCode {
 impl OpCode {
     pub fn size(&self) -> u32 {
         match *self {
+            OpCode::OptPlus => 3,
             OpCode::SetLocalWc0(_)|OpCode::GetLocalWc0(_) => 2,
             _ => 1
         }

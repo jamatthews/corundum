@@ -20,16 +20,6 @@ pub fn translate_code(op: OpCode, builder: &mut FunctionBuilder, state: &mut Tra
         // OpCode::GetLocal(index) => {
         //     state.push(builder.use_var(Variable::with_u32(index)))
         // },
-        // OpCode::OptPlus => {
-        //     let lhs_rvalue = state.pop();
-        //     let rhs_rvalue = state.pop();
-        //
-        //     let lhs = builder.ins().load(I64, MemFlags::new(), lhs_rvalue, 0);
-        //     let rhs = builder.ins().load(I64, MemFlags::new(), rhs_rvalue, 0);
-        //
-        //     let value = builder.ins().iadd(lhs, rhs);
-        //     state.push(value);
-        // },
         // OpCode::OptLt => {
         //     let rhs = state.pop();
         //     let lhs = state.pop();
@@ -63,6 +53,14 @@ pub fn translate_code(op: OpCode, builder: &mut FunctionBuilder, state: &mut Tra
                 state.push(value);
             }
         },
+        OpCode::OptPlus => {
+            let lhs = state.pop();
+            let rhs = state.pop();
+
+            //now we either need to call the CRuby function or implement this in Cranelift IR
+            let value = builder.ins().iadd(lhs, rhs);
+            state.push(value);
+        },
         OpCode::SetLocalWc0(index) => {
             let value = state.pop();
             builder.def_var(Variable::with_u32(index), value);
@@ -80,7 +78,6 @@ pub fn translate_code(op: OpCode, builder: &mut FunctionBuilder, state: &mut Tra
             let value = builder.ins().iconst(I64, zero.value as i64);
             state.push(value);
         },
-
         // OpCode::Pop => {
         //     if state.between_blocks {
         //         state.between_blocks = false;
