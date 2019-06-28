@@ -37,7 +37,7 @@ impl JIT {
     pub fn compile(&mut self, name: &str, iseq: rb_iseq_t) -> Result<*const u8, String> {
         let sig = Signature {
             params: vec![AbiParam::new(I64)],
-            returns: vec![AbiParam::new(I64), AbiParam::new(I64)],
+            returns: vec![AbiParam::new(I64)],
             call_conv: CallConv::SystemV,
         };
 
@@ -57,7 +57,7 @@ impl JIT {
     pub fn preview(&mut self, name: &str, iseq: rb_iseq_t) -> String {
         let sig = Signature {
             params: vec![AbiParam::new(I64)],
-            returns: vec![AbiParam::new(I64), AbiParam::new(I64)],
+            returns: vec![AbiParam::new(I64)],
             call_conv: CallConv::SystemV,
         };
 

@@ -1,9 +1,8 @@
 use cranelift::prelude::*;
 use cranelift_codegen::ir::types::I64;
 
-use helix::sys::Qnil;
-
 use corundum_ruby::fixnum::rb_int2inum;
+use corundum_ruby::ruby_special_consts::RUBY_Qnil;
 
 use opcode::OpCode;
 use translation_state::TranslationState;
@@ -53,22 +52,20 @@ pub fn translate_code(op: OpCode, builder: &mut FunctionBuilder, state: &mut Tra
         //     builder.ins().brnz(state.pop(), state.get_block(label), &[]);
         // },
         OpCode::Leave => {  //leave
-            let pointer = state.pop();
-            let value1 = builder.ins().load(I64, MemFlags::new(), pointer, 0);
-            let value2 = builder.ins().load(I64, MemFlags::new(), pointer, 8);
-            builder.ins().return_(&[value1, value2]);
+            let value = state.pop();
+            builder.ins().return_(&[value]);
         },
         OpCode::PutNil => { //putnil
             if builder.is_filled() {
                 state.between_blocks = true;
             } else {
-                let value = builder.ins().iconst(I64, unsafe{ (&Qnil as *const _) as i64 });
+                let value = builder.ins().iconst(I64, RUBY_Qnil as i64);
                 state.push(value);
             }
         },
         OpCode::PutObjectInt2Fix0 => {
-            let rvalue = unsafe { rb_int2inum(0) };
-            let value = builder.ins().iconst(I64, (&rvalue as *const _) as i64);
+            let zero = unsafe { rb_int2inum(0) };
+            let value = builder.ins().iconst(I64, zero.value as i64);
             state.push(value);
         },
         OpCode::SetLocalWc0(index) => {
