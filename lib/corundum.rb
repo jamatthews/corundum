@@ -12,9 +12,9 @@ class Corundum
 
   def self.preview(receiver, name, args = [])
     method = receiver.method(name)
-    iseq = RubyVM::InstructionSequence.of(method)
-    return false if iseq.nil?
-    preview_cranelift_ir("#{receiver.class.name}#{name}", stringify_iseq(iseq), args)
+    iseqw = RubyVM::InstructionSequence.of(method)
+    return false if iseqw.nil?
+    preview_cranelift_ir("#{receiver.class.name}#{name}", iseqw)
   end
 
   def self.run(receiver, name, args = [])
