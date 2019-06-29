@@ -8,7 +8,7 @@ class CorundumTest < Minitest::Test
   def test_preview
     Corundum.preview(self, :empty).is_a?(String)
   end
-  
+
   def test_run
     assert_nil Corundum.run(self, :empty)
   end
@@ -36,10 +36,11 @@ class CorundumTest < Minitest::Test
   def test_run_less_than
     assert_equal true, Corundum.run(self, :less_than)
   end
-  #
-  # def test_run_while_loop
-  #   assert_equal 3_000_000, Corundum.run(self, :while_loop)
-  # end
+
+  def test_run_while_loop
+    assert_equal 3_000_000, Corundum.run(self, :while_loop)
+  end
+
   #
   # def test_argument
   #   assert_equal 2, Corundum.run(self, :argument, [1])
@@ -77,6 +78,10 @@ class CorundumTest < Minitest::Test
 
   def less_than
     0 < 1
+  end
+
+  def test_if
+      0 if 0 < 1
   end
 
   def while_loop

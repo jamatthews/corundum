@@ -80,12 +80,21 @@ impl MethodTranslator {
 fn setup_basic_blocks(iseq: &rb_iseq_t, builder: &mut FunctionBuilder, state: &mut TranslationState){
     state.add_block(0, builder.create_ebb());
 
-    unsafe {
-        for i in 0..(*iseq.body).iseq_size {
-            match *(*iseq.body).iseq_encoded.offset(i as isize) {
-                //OpCode::Label(x) => state.add_block(*x, builder.create_ebb()),
-                _ => ()
-            }
+    let mut i = 0;
+    let max = unsafe { (*iseq.body).iseq_size };
+    while i < max {
+        let insn_ptr = unsafe { (*iseq.body).iseq_encoded.offset(i as isize) };
+        let operands_ptr = unsafe { (*iseq.body).iseq_encoded.offset((i+1) as isize) };
+        let opcode: OpCode = (insn_ptr, operands_ptr).into();
+
+        i += opcode.size();
+        match opcode {
+            OpCode::Jump(target)|OpCode::BranchIf(target) => {
+                state.add_block(i as i32 + target, builder.create_ebb())
+            },
+            _ => {}
         }
+
+
     }
 }

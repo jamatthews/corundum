@@ -4,8 +4,13 @@ use corundum_ruby::value::Value;
 
 #[derive(Debug)]
 pub enum OpCode {
+    Nop,
     PutNil,
+    PutObject,
+    Pop,
     Leave,
+    Jump(i32),
+    BranchIf(i32),
     OptPlus,
     OptLt,
     GetLocalWc0(u32),
@@ -19,12 +24,13 @@ impl From<(*const u64, *const u64)> for OpCode {
         let insn: i32 = unsafe { rb_vm_insn_addr2insn(*pointers.0 as *const _) };
 
         match insn {
+            0 => OpCode::Nop,
             16 => OpCode::PutNil,
-            // 18 => {
-            //     let first_arg_pointer = (pointer + 1) as *const _;
-            //     OpCode::SetLocal(*first_arg_pointer)
-            // }
+            18 => OpCode::PutObject,
+            35 => OpCode::Pop,
             57 => OpCode::Leave,
+            59 => OpCode::Jump(unsafe { *pointers.1 } as i32),
+            60 => OpCode::BranchIf(unsafe { *pointers.1 } as i32),
             67 => OpCode::OptPlus,
             74 => OpCode::OptLt,
             95 => OpCode::GetLocalWc0(unsafe { *pointers.1 } as u32),
@@ -40,7 +46,7 @@ impl OpCode {
     pub fn size(&self) -> u32 {
         match *self {
             OpCode::OptPlus|OpCode::OptLt => 3,
-            OpCode::SetLocalWc0(_)|OpCode::GetLocalWc0(_) => 2,
+            OpCode::PutObject|OpCode::Jump(_)|OpCode::BranchIf(_)|OpCode::SetLocalWc0(_)|OpCode::GetLocalWc0(_) => 2,
             _ => 1
         }
     }

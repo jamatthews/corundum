@@ -27,9 +27,6 @@ pub fn translate_code(op: OpCode, builder: &mut FunctionBuilder, state: &mut Tra
         //     let value = builder.ins().bint(I64, c);
         //     state.push(value);
         // },
-        // OpCode::Jump(label) => {
-        //     builder.ins().jump(state.get_block(label), &[]);
-        // },
         // OpCode::Label(label) => {
         //     if builder.is_filled() {
         //         builder.switch_to_block(state.get_block(label));
@@ -41,10 +38,7 @@ pub fn translate_code(op: OpCode, builder: &mut FunctionBuilder, state: &mut Tra
         // OpCode::BranchIf(label) => {
         //     builder.ins().brnz(state.pop(), state.get_block(label), &[]);
         // },
-        OpCode::Leave => {  //leave
-            let value = state.pop();
-            builder.ins().return_(&[value]);
-        },
+        OpCode::Nop => {},
         OpCode::PutNil => { //putnil
             if builder.is_filled() {
                 state.between_blocks = true;
@@ -52,6 +46,24 @@ pub fn translate_code(op: OpCode, builder: &mut FunctionBuilder, state: &mut Tra
                 let value = builder.ins().iconst(I64, RUBY_Qnil as i64);
                 state.push(value);
             }
+        },
+        OpCode::PutObject => {},
+        OpCode::Pop => {
+            // if state.between_blocks {
+            //     state.between_blocks = false;
+            // } else {
+            //     state.pop();
+            // }
+        },
+        OpCode::Leave => {  //leave
+            let value = state.pop();
+            builder.ins().return_(&[value]);
+        },
+        OpCode::Jump(_) => {
+            //builder.ins().jump(state.get_block(label), &[]);
+        },
+        OpCode::BranchIf(_) => {
+            //builder.ins().jump(state.get_block(label), &[]);
         },
         OpCode::OptPlus => {
             let lhs_value = state.pop();
@@ -101,12 +113,5 @@ pub fn translate_code(op: OpCode, builder: &mut FunctionBuilder, state: &mut Tra
             let value = builder.ins().iconst(I64, zero.value as i64);
             state.push(value);
         },
-        // OpCode::Pop => {
-        //     if state.between_blocks {
-        //         state.between_blocks = false;
-        //     } else {
-        //         state.pop();
-        //     }
-        // }
     }
 }
