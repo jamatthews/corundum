@@ -7,6 +7,7 @@ pub enum OpCode {
     PutNil,
     Leave,
     OptPlus,
+    OptLt,
     GetLocalWc0(u32),
     SetLocalWc0(u32),
     PutObjectInt2Fix0,
@@ -25,6 +26,7 @@ impl From<(*const u64, *const u64)> for OpCode {
             // }
             57 => OpCode::Leave,
             67 => OpCode::OptPlus,
+            74 => OpCode::OptLt,
             95 => OpCode::GetLocalWc0(unsafe { *pointers.1 } as u32),
             97 => { OpCode::SetLocalWc0(unsafe { *pointers.1 } as u32) },
             99 => OpCode::PutObjectInt2Fix0,
@@ -37,7 +39,7 @@ impl From<(*const u64, *const u64)> for OpCode {
 impl OpCode {
     pub fn size(&self) -> u32 {
         match *self {
-            OpCode::OptPlus => 3,
+            OpCode::OptPlus|OpCode::OptLt => 3,
             OpCode::SetLocalWc0(_)|OpCode::GetLocalWc0(_) => 2,
             _ => 1
         }

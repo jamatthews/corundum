@@ -66,6 +66,19 @@ pub fn translate_code(op: OpCode, builder: &mut FunctionBuilder, state: &mut Tra
 
             state.push(value);
         },
+        OpCode::OptLt => {
+            let lhs_value = state.pop();
+            let rhs_value = state.pop();
+
+            //VALUE has the lowest bit set to 1 to flag integers
+            let lhs_int = builder.ins().ushr_imm(lhs_value, 1);
+            let rhs_int = builder.ins().ushr_imm(rhs_value, 1);
+            //Qfalse is 0 so this is easy
+            let result = builder.ins().icmp(IntCC::SignedLessThan, lhs_int, rhs_int);
+            //TODO use a mask for true
+            let result_int = builder.ins().bint(I64, result);
+            state.push(result_int);
+        },
         OpCode::SetLocalWc0(index) => {
             let value = state.pop();
             builder.def_var(Variable::with_u32(index), value);

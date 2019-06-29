@@ -24,6 +24,18 @@ class CorundumTest < Minitest::Test
   def test_run_plus
     assert_equal 2, Corundum.run(self, :plus)
   end
+
+  def test_run_plus
+    assert_equal 2, Corundum.run(self, :plus)
+  end
+
+  def test_run_plus
+    assert_equal 2, Corundum.run(self, :plus)
+  end
+
+  def test_run_less_than
+    assert_equal false, Corundum.run(self, :less_than)
+  end
   #
   # def test_run_while_loop
   #   assert_equal 3_000_000, Corundum.run(self, :while_loop)
@@ -61,6 +73,10 @@ class CorundumTest < Minitest::Test
   def plus
     a = 1 + 1
     a
+  end
+
+  def less_than
+    1 < 1
   end
 
   def while_loop
