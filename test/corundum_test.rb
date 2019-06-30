@@ -37,9 +37,13 @@ class CorundumTest < Minitest::Test
     assert_equal true, Corundum.run(self, :less_than)
   end
 
-  def test_run_while_loop
-    assert_equal 3_000_000, Corundum.run(self, :while_loop)
+  def test_run_test_if
+    assert_equal 0, Corundum.run(self, :test_if)
   end
+
+  # def test_run_while_loop
+  #   assert_equal 3_000_000, Corundum.preview(self, :while_loop)
+  # end
 
   #
   # def test_argument

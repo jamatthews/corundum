@@ -28,10 +28,10 @@ impl TranslationState {
         self.blocks.insert(label, block);
     }
 
-    pub fn get_block(&mut self, label: i32) -> Ebb {
+    pub fn get_block(&mut self, label: i32) -> Option<Ebb> {
         match self.blocks.get(&label) {
-            Some(block) => *block,
-            None => panic!("Couldn't get block {}", label)
+            Some(block) => { Some(*block) },
+            None => None
         }
     }
 }

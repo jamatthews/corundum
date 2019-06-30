@@ -7,7 +7,7 @@ use corundum_ruby::ruby_special_consts::RUBY_Qnil;
 use opcode::OpCode;
 use translation_state::TranslationState;
 
-pub fn translate_code(op: OpCode, builder: &mut FunctionBuilder, state: &mut TranslationState, _return_pointer: &Value) {
+pub fn translate_code(op: OpCode, offset: i32, builder: &mut FunctionBuilder, state: &mut TranslationState, _return_pointer: &Value) {
     match op {
         // OpCode::PutObject(obj) => {
         //     let value = builder.ins().iconst(I64, (&obj as *const RValue) as i64);
@@ -40,30 +40,39 @@ pub fn translate_code(op: OpCode, builder: &mut FunctionBuilder, state: &mut Tra
         // },
         OpCode::Nop => {},
         OpCode::PutNil => { //putnil
-            if builder.is_filled() {
-                state.between_blocks = true;
-            } else {
-                let value = builder.ins().iconst(I64, RUBY_Qnil as i64);
-                state.push(value);
-            }
+            // if builder.is_filled() {
+            //     state.between_blocks = true;
+            // } else {
+            //     let value = builder.ins().iconst(I64, RUBY_Qnil as i64);
+            //     state.push(value);
+            // }
+            let value = builder.ins().iconst(I64, RUBY_Qnil as i64);
+            state.push(value);
         },
-        OpCode::PutObject => {},
+        OpCode::PutObject(object) => {
+            let value = builder.ins().iconst(I64, object as i64);
+            state.push(value);
+        },
         OpCode::Pop => {
             // if state.between_blocks {
             //     state.between_blocks = false;
             // } else {
             //     state.pop();
             // }
+            state.pop();
         },
         OpCode::Leave => {  //leave
             let value = state.pop();
             builder.ins().return_(&[value]);
         },
-        OpCode::Jump(_) => {
-            //builder.ins().jump(state.get_block(label), &[]);
+        OpCode::Jump(target) => {
+            builder.ins().jump(state.get_block(target + offset).unwrap(), &[]);
         },
-        OpCode::BranchIf(_) => {
-            //builder.ins().jump(state.get_block(label), &[]);
+        OpCode::BranchIf(target) => {
+            builder.ins().brnz(state.pop(), state.get_block(target + offset).unwrap(), &[]);
+        },
+        OpCode::BranchUnless(target) => {
+            builder.ins().brz(state.pop(), state.get_block(target + offset).unwrap(), &[]);
         },
         OpCode::OptPlus => {
             let lhs_value = state.pop();
@@ -109,8 +118,8 @@ pub fn translate_code(op: OpCode, builder: &mut FunctionBuilder, state: &mut Tra
             state.push(value);
         },
         OpCode::PutObjectInt2Fix1 => {
-            let zero = unsafe { rb_int2inum(1) };
-            let value = builder.ins().iconst(I64, zero.value as i64);
+            let one = unsafe { rb_int2inum(1) };
+            let value = builder.ins().iconst(I64, one.value as i64);
             state.push(value);
         },
     }

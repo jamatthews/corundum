@@ -25,7 +25,7 @@ impl MethodTranslator {
         let mut builder = FunctionBuilder::new(function, &mut self.builder_context);
 
         setup_basic_blocks(&iseq, &mut builder, &mut self.state);
-        let block = self.state.get_block(0);
+        let block = self.state.get_block(0).unwrap();
         builder.switch_to_block(block);
         builder.append_ebb_params_for_function_params(block);
         let return_pointer = builder.ebb_params(block)[0];
@@ -33,14 +33,18 @@ impl MethodTranslator {
 
         builder.declare_var(Variable::with_u32(3), I64);
 
-        let mut i = 0;
+        let mut offset = 0;
         let max = unsafe { (*iseq.body).iseq_size };
-        while i < max {
-            let insn_ptr = unsafe { (*iseq.body).iseq_encoded.offset(i as isize) };
-            let operands_ptr = unsafe { (*iseq.body).iseq_encoded.offset((i+1) as isize) };
+        while offset < max {
+            let insn_ptr = unsafe { (*iseq.body).iseq_encoded.offset(offset as isize) };
+            let operands_ptr = unsafe { (*iseq.body).iseq_encoded.offset((offset+1) as isize) };
             let opcode: OpCode = (insn_ptr, operands_ptr).into();
-            i += opcode.size();
-            opcode_translator::translate_code(opcode, &mut builder, &mut self.state, &return_pointer);
+            offset += opcode.size();
+            opcode_translator::translate_code(opcode, offset as i32, &mut builder, &mut self.state, &return_pointer);
+            match self.state.get_block(offset as i32) {
+                Some(block) => { builder.switch_to_block(block) },
+                _ => {}
+            };
         }
 
         builder.seal_all_blocks();
@@ -53,7 +57,7 @@ impl MethodTranslator {
         let mut builder = FunctionBuilder::new(function, &mut self.builder_context);
 
         setup_basic_blocks(&iseq, &mut builder, &mut self.state);
-        let block = self.state.get_block(0);
+        let block = self.state.get_block(0).unwrap();
         builder.switch_to_block(block);
         builder.append_ebb_params_for_function_params(block);
         let return_pointer = builder.ebb_params(block)[0];
@@ -61,14 +65,19 @@ impl MethodTranslator {
 
         builder.declare_var(Variable::with_u32(3), I64);
 
-        let mut i = 0;
+        let mut offset = 0;
         let max = unsafe { (*iseq.body).iseq_size };
-        while i < max {
-            let insn_ptr = unsafe { (*iseq.body).iseq_encoded.offset(i as isize) };
-            let operands_ptr = unsafe { (*iseq.body).iseq_encoded.offset((i+1) as isize) };
+        while offset < max {
+            let insn_ptr = unsafe { (*iseq.body).iseq_encoded.offset(offset as isize) };
+            let operands_ptr = unsafe { (*iseq.body).iseq_encoded.offset((offset+1) as isize) };
             let opcode: OpCode = (insn_ptr, operands_ptr).into();
-            i += opcode.size();
-            opcode_translator::translate_code(opcode, &mut builder, &mut self.state, &return_pointer);
+            offset += opcode.size();
+
+            opcode_translator::translate_code(opcode, offset as i32, &mut builder, &mut self.state, &return_pointer);
+            match self.state.get_block(offset as i32) {
+                Some(block) => { builder.switch_to_block(block); },
+                _ => {}
+            };
         }
 
         builder.seal_all_blocks();
@@ -80,21 +89,30 @@ impl MethodTranslator {
 fn setup_basic_blocks(iseq: &rb_iseq_t, builder: &mut FunctionBuilder, state: &mut TranslationState){
     state.add_block(0, builder.create_ebb());
 
-    let mut i = 0;
+    let mut offset = 0;
     let max = unsafe { (*iseq.body).iseq_size };
-    while i < max {
-        let insn_ptr = unsafe { (*iseq.body).iseq_encoded.offset(i as isize) };
-        let operands_ptr = unsafe { (*iseq.body).iseq_encoded.offset((i+1) as isize) };
+    while offset < max {
+        let insn_ptr = unsafe { (*iseq.body).iseq_encoded.offset(offset as isize) };
+        let operands_ptr = unsafe { (*iseq.body).iseq_encoded.offset((offset+1) as isize) };
         let opcode: OpCode = (insn_ptr, operands_ptr).into();
 
-        i += opcode.size();
+        offset += opcode.size();
         match opcode {
-            OpCode::Jump(target)|OpCode::BranchIf(target) => {
-                state.add_block(i as i32 + target, builder.create_ebb())
-            },
+            OpCode::BranchIf(target)|OpCode::BranchUnless(target) => {
+                state.add_block(offset as i32 + target, builder.create_ebb());
+            }
+            // OpCode::Jump(target) => {
+            //     println!("adding blocks for jump at {} and {}",i+2,offset as i32 + target);
+            //     state.add_block(i+2, builder.create_ebb());
+            //     state.add_block(offset as i32 + target, builder.create_ebb());
+            // },
+            // OpCode::Leave => {
+            //     if offset < max {
+            //         println!("adding block for leave at {}", i+2);
+            //         state.add_block(i+2, builder.create_ebb());
+            //     }
+            // }
             _ => {}
         }
-
-
     }
 }
