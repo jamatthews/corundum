@@ -42,7 +42,12 @@ impl MethodTranslator {
             offset += opcode.size();
             opcode_translator::translate_code(opcode, offset as i32, &mut builder, &mut self.state, &return_pointer);
             match self.state.get_block(offset as i32) {
-                Some(block) => { builder.switch_to_block(block) },
+                Some(block) => {
+                    if !builder.is_filled() {
+                        builder.ins().jump(block, &[]);
+                    }
+                    builder.switch_to_block(block)
+                },
                 _ => {}
             };
         }
@@ -75,7 +80,12 @@ impl MethodTranslator {
 
             opcode_translator::translate_code(opcode, offset as i32, &mut builder, &mut self.state, &return_pointer);
             match self.state.get_block(offset as i32) {
-                Some(block) => { builder.switch_to_block(block); },
+                Some(block) => {
+                    if !builder.is_filled() {
+                        builder.ins().jump(block, &[]);
+                    }
+                    builder.switch_to_block(block);
+                },
                 _ => {}
             };
         }
@@ -101,17 +111,15 @@ fn setup_basic_blocks(iseq: &rb_iseq_t, builder: &mut FunctionBuilder, state: &m
             OpCode::BranchIf(target)|OpCode::BranchUnless(target) => {
                 state.add_block(offset as i32 + target, builder.create_ebb());
             }
-            // OpCode::Jump(target) => {
-            //     println!("adding blocks for jump at {} and {}",i+2,offset as i32 + target);
-            //     state.add_block(i+2, builder.create_ebb());
-            //     state.add_block(offset as i32 + target, builder.create_ebb());
-            // },
-            // OpCode::Leave => {
-            //     if offset < max {
-            //         println!("adding block for leave at {}", i+2);
-            //         state.add_block(i+2, builder.create_ebb());
-            //     }
-            // }
+            OpCode::Jump(target) => {
+                state.add_block(offset as i32, builder.create_ebb());
+                state.add_block(offset as i32 + target, builder.create_ebb());
+            },
+            OpCode::Leave => {
+                if offset < max {
+                    state.add_block(offset as i32, builder.create_ebb());
+                }
+            }
             _ => {}
         }
     }
