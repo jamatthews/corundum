@@ -24,14 +24,10 @@ class Corundum
     compile_and_run("#{receiver.class.name}#{name}", iseqw)
   end
 
-  private
-
-  def self.stringify_iseq(iseq)
-    iseq.to_a.last
-      .select{|x| x.is_a?(Symbol) || x.is_a?(Array) } #strip out extra stuff
-      .reject{|x| x.is_a?(Array) && x.first == :trace } #strip out extra stuff
-      .map!{|x| if x.is_a?(Symbol); x.to_s.split('_') ; else x; end } #split label instructions
-      .map!{|x| if x.is_a?(Array); x.map(&:to_s) ; else x; end } #instructions are arrays, need to make elements strings
-      .map!{|x| if x.is_a?(Array) && ['jump','branchif'].include?(x[0]) ; x[1].gsub!('label_','') ; end; x } #remove label prefix
+  def self.run_tracelet(receiver, name, args = [])
+    method = receiver.method(name)
+    iseqw = RubyVM::InstructionSequence.of(method)
+    return false if iseqw.nil?
+    compile_and_run_tracelet("#{receiver.class.name}#{name}", iseqw)
   end
 end
