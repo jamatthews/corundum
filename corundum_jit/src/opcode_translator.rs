@@ -38,6 +38,7 @@ pub fn translate_code(op: OpCode, offset: i32, builder: &mut FunctionBuilder, st
             let value = builder.ins().iconst(I64, RUBY_Qnil as i64);
             state.push(value);
         },
+        OpCode::PutSelf => {},
         OpCode::PutObject(object) => {
             let value = builder.ins().iconst(I64, object as i64);
             state.push(value);
@@ -45,6 +46,7 @@ pub fn translate_code(op: OpCode, offset: i32, builder: &mut FunctionBuilder, st
         OpCode::Pop => {
             state.pop();
         },
+        OpCode::OptSendWithoutBlock => {},
         OpCode::Leave => {
             let value = state.pop();
             builder.ins().return_(&[value]);
@@ -66,12 +68,36 @@ pub fn translate_code(op: OpCode, offset: i32, builder: &mut FunctionBuilder, st
             let result = builder.ins().iadd(lhs_int, rhs_int);
             state.push(i64_2_value!(result, builder));
         },
+        OpCode::OptMinus => {
+            let lhs = state.pop();
+            let rhs = state.pop();
+            let lhs_int = value_2_i64!(lhs, builder);
+            let rhs_int = value_2_i64!(rhs, builder);
+            let result = builder.ins().isub(lhs_int, rhs_int);
+            state.push(i64_2_value!(result, builder));
+        },
+        OpCode::OptMulti => {
+            let lhs = state.pop();
+            let rhs = state.pop();
+            let lhs_int = value_2_i64!(lhs, builder);
+            let rhs_int = value_2_i64!(rhs, builder);
+            let result = builder.ins().imul(lhs_int, rhs_int);
+            state.push(i64_2_value!(result, builder));
+        },
         OpCode::OptLt => {
             let rhs = state.pop();
             let lhs = state.pop();
             let rhs_int = value_2_i64!(rhs, builder);
             let lhs_int = value_2_i64!(lhs, builder);
             let result = builder.ins().icmp(IntCC::SignedLessThan, lhs_int, rhs_int);
+            state.push(b1_2_value!(result, builder));
+        },
+        OpCode::OptGt => {
+            let rhs = state.pop();
+            let lhs = state.pop();
+            let rhs_int = value_2_i64!(rhs, builder);
+            let lhs_int = value_2_i64!(lhs, builder);
+            let result = builder.ins().icmp(IntCC::SignedGreaterThan, lhs_int, rhs_int);
             state.push(b1_2_value!(result, builder));
         },
         OpCode::SetLocalWc0(index) => {

@@ -15,6 +15,7 @@ pub fn translate_code(op: OpCode, offset: i32, builder: &mut FunctionBuilder, st
             let value = builder.ins().iconst(I64, RUBY_Qnil as i64);
             state.push(value);
         },
+        OpCode::PutSelf => {},
         OpCode::PutObject(object) => {
             let value = builder.ins().iconst(I64, object as i64);
             state.push(value);
@@ -22,6 +23,7 @@ pub fn translate_code(op: OpCode, offset: i32, builder: &mut FunctionBuilder, st
         OpCode::Pop => {
             state.pop();
         },
+        OpCode::OptSendWithoutBlock => {},
         OpCode::Leave => {
             let value = state.pop();
             builder.ins().return_(&[value]);
@@ -41,10 +43,28 @@ pub fn translate_code(op: OpCode, offset: i32, builder: &mut FunctionBuilder, st
             let result = builder.ins().iadd(lhs, rhs);
             state.push(result);
         },
+        OpCode::OptMinus => {
+            let lhs = state.pop();
+            let rhs = state.pop();
+            let result = builder.ins().isub(lhs, rhs);
+            state.push(result);
+        },
+        OpCode::OptMulti => {
+            let lhs = state.pop();
+            let rhs = state.pop();
+            let result = builder.ins().imul(lhs, rhs);
+            state.push(result);
+        },
         OpCode::OptLt => {
             let rhs = state.pop();
             let lhs = state.pop();
             let result = builder.ins().icmp(IntCC::SignedLessThan, lhs, rhs);
+            state.push(result);
+        },
+        OpCode::OptGt => {
+            let rhs = state.pop();
+            let lhs = state.pop();
+            let result = builder.ins().icmp(IntCC::SignedGreaterThan, lhs, rhs);
             state.push(result);
         },
         OpCode::SetLocalWc0(index) => {
