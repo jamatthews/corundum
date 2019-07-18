@@ -12,9 +12,21 @@ class Corundum
 
   def self.preview(receiver, name, args = [])
     method = receiver.method(name)
+    preview_cranelift_ir(receiver, method)
+  end
+
+  def self.compile_only(receiver, name, args = [])
+    method = receiver.method(name)
     iseqw = RubyVM::InstructionSequence.of(method)
     return false if iseqw.nil?
-    preview_cranelift_ir("#{receiver.class.name}#{name}", iseqw)
+    compile("#{receiver.class.name}#{name}", iseqw)
+  end
+
+  def self.compile_tracelet_only(receiver, name, args = [])
+    method = receiver.method(name)
+    iseqw = RubyVM::InstructionSequence.of(method)
+    return false if iseqw.nil?
+    compile_tracelet("#{receiver.class.name}#{name}", iseqw)
   end
 
   def self.run(receiver, name, args = [])
