@@ -6,9 +6,9 @@ class BenchmarksTest < Minitest::Test
     assert_equal 3_000_000, Corundum.run(self, :while_loop)
   end
 
-  def test_factorial
-    assert_equal 1, Corundum.run(self, :factorial, 1)
-  end
+  # def test_factorial
+  #   assert_equal 1, Corundum.run(self, :factorial, 1)
+  # end
 
   private
 
@@ -20,7 +20,7 @@ class BenchmarksTest < Minitest::Test
     i
   end
 
-  def factorial(n)
+  def factorial(n = 1)
     if(n > 1)
       n * factorial(n-1)
     else
