@@ -1,6 +1,7 @@
 use corundum_ruby::rb_fix2int;
 use corundum_ruby::rb_vm_insn_addr2insn;
 use corundum_ruby::value::Value;
+use corundum_ruby::rb_call_info;
 
 #[derive(Debug)]
 pub enum OpCode {
@@ -9,7 +10,7 @@ pub enum OpCode {
     PutSelf,
     PutObject(u64),
     Pop,
-    OptSendWithoutBlock,
+    OptSendWithoutBlock(rb_call_info),
     Leave,
     Jump(i32),
     BranchIf(i32),
@@ -35,7 +36,7 @@ impl From<(*const u64, *const u64)> for OpCode {
             17 => OpCode::PutSelf,
             18 => OpCode::PutObject(unsafe { *pointers.1 }),
             35 => OpCode::Pop,
-            50 => OpCode::OptSendWithoutBlock,
+            50 => OpCode::OptSendWithoutBlock(unsafe { **(pointers.1 as *const *const rb_call_info) }),
             57 => OpCode::Leave,
             59 => OpCode::Jump(unsafe { *pointers.1 } as i32),
             60 => OpCode::BranchIf(unsafe { *pointers.1 } as i32),
@@ -57,7 +58,7 @@ impl From<(*const u64, *const u64)> for OpCode {
 impl OpCode {
     pub fn size(&self) -> u32 {
         match *self {
-            OpCode::OptSendWithoutBlock
+            OpCode::OptSendWithoutBlock(_)
                 |OpCode::OptPlus
                 |OpCode::OptMinus
                 |OpCode::OptMulti

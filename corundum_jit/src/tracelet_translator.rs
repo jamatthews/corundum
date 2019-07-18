@@ -23,7 +23,7 @@ pub fn translate_code(op: OpCode, offset: i32, builder: &mut FunctionBuilder, st
         OpCode::Pop => {
             state.pop();
         },
-        OpCode::OptSendWithoutBlock => {},
+        OpCode::OptSendWithoutBlock(_) => {},
         OpCode::Leave => {
             let value = state.pop();
             builder.ins().return_(&[value]);

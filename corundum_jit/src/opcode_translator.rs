@@ -2,8 +2,12 @@
 use cranelift::prelude::*;
 use cranelift_codegen::ir::types::I64;
 
+use corundum_ruby::rb_id2sym;
 use corundum_ruby::fixnum::rb_int2inum;
+use corundum_ruby::rb_method_iseq;
+use corundum_ruby::rb_obj_method;
 use corundum_ruby::ruby_special_consts::RUBY_Qnil;
+use corundum_ruby::ruby_current_execution_context_ptr;
 
 use opcode::OpCode;
 use translation_state::TranslationState;
@@ -46,7 +50,15 @@ pub fn translate_code(op: OpCode, offset: i32, builder: &mut FunctionBuilder, st
         OpCode::Pop => {
             state.pop();
         },
-        OpCode::OptSendWithoutBlock => {},
+        OpCode::OptSendWithoutBlock(call_info) => {
+            unsafe {
+                let ec = ruby_current_execution_context_ptr;
+                let self_ = (*(*ec).cfp).self_;
+                let method = rb_obj_method(self_.clone(), rb_id2sym(call_info.mid));
+                let iseq = rb_method_iseq(method);
+                println!("{:?}", iseq);
+            }
+        },
         OpCode::Leave => {
             let value = state.pop();
             builder.ins().return_(&[value]);
