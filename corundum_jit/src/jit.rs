@@ -47,10 +47,12 @@ impl JIT {
 
         let func_id = self.module.declare_function(name, Linkage::Local, &sig).unwrap();
         self.codegen_context.func = Function::with_name_signature(ExternalName::user(0, func_id.as_u32()), sig);
+        {
+            let mut builder_context = FunctionBuilderContext::new();
+            let mut builder = FunctionBuilder::new(&mut self.codegen_context.func, &mut builder_context);
 
-
-        MethodTranslator::new().translate(&mut self.codegen_context.func, iseq).unwrap();
-
+            MethodTranslator::new(builder).translate(iseq).unwrap();
+        }
 
         self.module.define_function(func_id, &mut self.codegen_context).unwrap();
         self.module.finalize_definitions();
@@ -67,9 +69,12 @@ impl JIT {
 
         let func_id = self.module.declare_function(name, Linkage::Local, &sig).unwrap();
         self.codegen_context.func = Function::with_name_signature(ExternalName::user(0, func_id.as_u32()), sig);
+        {
+            let mut builder_context = FunctionBuilderContext::new();
+            let mut builder = FunctionBuilder::new(&mut self.codegen_context.func, &mut builder_context);
 
-
-        MethodTranslator::new().translate_tracelet(&mut self.codegen_context.func, iseq).unwrap();
+            MethodTranslator::new(builder).translate(iseq).unwrap();
+        }
 
 
         self.module.define_function(func_id, &mut self.codegen_context).unwrap();
@@ -87,7 +92,9 @@ impl JIT {
 
         let func_id = self.module.declare_function(name, Linkage::Local, &sig).unwrap();
         self.codegen_context.func = Function::with_name_signature(ExternalName::user(0, func_id.as_u32()), sig);
+        let mut builder_context = FunctionBuilderContext::new();
+        let mut builder = FunctionBuilder::new(&mut self.codegen_context.func, &mut builder_context);
 
-        MethodTranslator::new().preview(&mut self.codegen_context.func, iseq).unwrap()
+        MethodTranslator::new(builder).preview(iseq).unwrap()
     }
 }

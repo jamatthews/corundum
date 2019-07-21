@@ -8,31 +8,30 @@ use tracelet_translator;
 use translation_state::TranslationState;
 use corundum_ruby::rb_iseq_t;
 
-pub struct MethodTranslator {
-    builder_context: FunctionBuilderContext,
+pub struct MethodTranslator<'a> {
+    builder: FunctionBuilder<'a>,
     state: TranslationState,
 }
 
-impl MethodTranslator {
+impl <'a> MethodTranslator<'a> {
 
-    pub fn new() -> Self {
+    pub fn new(builder: FunctionBuilder<'a>) -> Self {
         Self {
-            builder_context: FunctionBuilderContext::new(),
+            builder: builder,
             state: TranslationState::new(),
         }
     }
 
-    pub fn translate(&mut self, function: &mut Function, iseq: rb_iseq_t) -> Result<(), String> {
-        let mut builder = FunctionBuilder::new(function, &mut self.builder_context);
-
-        setup_basic_blocks(&iseq, &mut builder, &mut self.state);
+    pub fn translate(&mut self, iseq: rb_iseq_t) -> Result<(), String> {
+        setup_basic_blocks(&iseq, &mut self.builder, &mut self.state);
         let block = self.state.get_block(0).unwrap();
-        builder.switch_to_block(block);
-        builder.append_ebb_params_for_function_params(block);
-        let return_pointer = builder.ebb_params(block)[0];
-        builder.ensure_inserted_ebb();
+        self.builder.switch_to_block(block);
+        self.builder.append_ebb_params_for_function_params(block);
+        let return_pointer = self.builder.ebb_params(block)[0];
+        self.builder.ensure_inserted_ebb();
 
-        builder.declare_var(Variable::with_u32(3), I64);
+        //TODO handle mapping variables!
+        self.builder.declare_var(Variable::with_u32(3), I64);
 
         let mut offset = 0;
         let max = unsafe { (*iseq.body).iseq_size };
@@ -41,96 +40,25 @@ impl MethodTranslator {
             let operands_ptr = unsafe { (*iseq.body).iseq_encoded.offset((offset+1) as isize) };
             let opcode: OpCode = (insn_ptr, operands_ptr).into();
             offset += opcode.size();
-            opcode_translator::translate_code(opcode, offset as i32, &mut builder, &mut self.state, &return_pointer);
+            opcode_translator::translate_code(opcode, offset as i32, &mut self.builder, &mut self.state, &return_pointer);
             match self.state.get_block(offset as i32) {
                 Some(block) => {
-                    if !builder.is_filled() {
-                        builder.ins().jump(block, &[]);
+                    if !self.builder.is_filled() {
+                        self.builder.ins().jump(block, &[]);
                     }
-                    builder.switch_to_block(block)
+                    self.builder.switch_to_block(block)
                 },
                 _ => {}
             };
         }
 
-        builder.seal_all_blocks();
-        //println!("{}", builder.display(None).to_string());
+        self.builder.seal_all_blocks();
 
         Ok(())
     }
 
-    pub fn preview(&mut self, function: &mut Function, iseq: rb_iseq_t) -> Result<String, String> {
-        let mut builder = FunctionBuilder::new(function, &mut self.builder_context);
-
-        setup_basic_blocks(&iseq, &mut builder, &mut self.state);
-        let block = self.state.get_block(0).unwrap();
-        builder.switch_to_block(block);
-        builder.append_ebb_params_for_function_params(block);
-        let return_pointer = builder.ebb_params(block)[0];
-        builder.ensure_inserted_ebb();
-
-        builder.declare_var(Variable::with_u32(3), I64);
-
-        let mut offset = 0;
-        let max = unsafe { (*iseq.body).iseq_size };
-        while offset < max {
-            let insn_ptr = unsafe { (*iseq.body).iseq_encoded.offset(offset as isize) };
-            let operands_ptr = unsafe { (*iseq.body).iseq_encoded.offset((offset+1) as isize) };
-            let opcode: OpCode = (insn_ptr, operands_ptr).into();
-            offset += opcode.size();
-
-            opcode_translator::translate_code(opcode, offset as i32, &mut builder, &mut self.state, &return_pointer);
-            match self.state.get_block(offset as i32) {
-                Some(block) => {
-                    if !builder.is_filled() {
-                        builder.ins().jump(block, &[]);
-                    }
-                    builder.switch_to_block(block);
-                },
-                _ => {}
-            };
-        }
-
-        builder.seal_all_blocks();
-
-        Ok(builder.display(None).to_string())
-    }
-
-    pub fn translate_tracelet(&mut self, function: &mut Function, iseq: rb_iseq_t) -> Result<(), String> {
-        let mut builder = FunctionBuilder::new(function, &mut self.builder_context);
-
-        setup_basic_blocks(&iseq, &mut builder, &mut self.state);
-        let block = self.state.get_block(0).unwrap();
-        builder.switch_to_block(block);
-        builder.append_ebb_params_for_function_params(block);
-        let return_pointer = builder.ebb_params(block)[0];
-        builder.ensure_inserted_ebb();
-
-        builder.declare_var(Variable::with_u32(3), I64);
-
-        let mut offset = 0;
-        let max = unsafe { (*iseq.body).iseq_size };
-        while offset < max {
-            let insn_ptr = unsafe { (*iseq.body).iseq_encoded.offset(offset as isize) };
-            let operands_ptr = unsafe { (*iseq.body).iseq_encoded.offset((offset+1) as isize) };
-            let opcode: OpCode = (insn_ptr, operands_ptr).into();
-            offset += opcode.size();
-            tracelet_translator::translate_code(opcode, offset as i32, &mut builder, &mut self.state, &return_pointer);
-            match self.state.get_block(offset as i32) {
-                Some(block) => {
-                    if !builder.is_filled() {
-                        builder.ins().jump(block, &[]);
-                    }
-                    builder.switch_to_block(block)
-                },
-                _ => {}
-            };
-        }
-
-        builder.seal_all_blocks();
-        //println!("{}", builder.display(None).to_string());
-
-        Ok(())
+    pub fn preview(&mut self, iseq: rb_iseq_t) -> Result<String, String> {
+        Ok(self.builder.display(None).to_string())
     }
 }
 
