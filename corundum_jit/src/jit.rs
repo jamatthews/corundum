@@ -16,7 +16,6 @@ use corundum_ruby::*;
 pub struct JIT {
     module: Module<SimpleJITBackend>,
     codegen_context: Context,
-    builder_context: FunctionBuilderContext,
 }
 
 impl JIT {
@@ -24,7 +23,6 @@ impl JIT {
         JIT {
             module: Module::new(SimpleJITBuilder::new()),
             codegen_context: Context::new(),
-            builder_context: FunctionBuilderContext::new(),
         }
     }
 
