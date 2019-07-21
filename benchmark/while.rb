@@ -5,7 +5,7 @@ require 'corundum'
 
 def while_loop
   i = 0
-  while i < 20_000 # benchmark loop 1
+  while i < 30_000_000
     i += 1
   end
 end
