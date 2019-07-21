@@ -2,9 +2,9 @@ require "test_helper"
 
 class CallTest < Minitest::Test
 
-  # def test_call
-  #   assert_equal 1, Corundum.run(self, :caller)
-  # end
+  def test_call
+    assert_equal 1, Corundum.run(self, :caller)
+  end
 
   private
 
@@ -12,7 +12,9 @@ class CallTest < Minitest::Test
     callee
   end
 
-  def callee
+  def self.callee
     1
   end
+
+
 end

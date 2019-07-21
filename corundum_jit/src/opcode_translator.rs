@@ -2,15 +2,22 @@
 use cranelift::prelude::*;
 use cranelift_codegen::ir::types::I64;
 
+use corundum_ruby::rb_const_get;
 use corundum_ruby::rb_id2sym;
 use corundum_ruby::fixnum::rb_int2inum;
+use corundum_ruby::rb_iseq_t;
 use corundum_ruby::rb_method_iseq;
 use corundum_ruby::rb_obj_method;
 use corundum_ruby::ruby_special_consts::RUBY_Qnil;
 use corundum_ruby::ruby_current_execution_context_ptr;
+use corundum_ruby::rb_cObject;
+use corundum_ruby::rb_intern;
+use corundum_ruby::value::Value as RValue;
 
 use opcode::OpCode;
 use translation_state::TranslationState;
+
+use std::ffi::CString;
 
 macro_rules! b1_2_value {
     ($x:ident, $builder:ident) => {{
@@ -42,7 +49,10 @@ pub fn translate_code(op: OpCode, offset: i32, builder: &mut FunctionBuilder, st
             let value = builder.ins().iconst(I64, RUBY_Qnil as i64);
             state.push(value);
         },
-        OpCode::PutSelf => {},
+        OpCode::PutSelf => {
+            // let value = builder.ins().iconst(I64, state.self_ as i64);
+            // state.push(value);
+        },
         OpCode::PutObject(object) => {
             let value = builder.ins().iconst(I64, object as i64);
             state.push(value);
@@ -52,11 +62,22 @@ pub fn translate_code(op: OpCode, offset: i32, builder: &mut FunctionBuilder, st
         },
         OpCode::OptSendWithoutBlock(call_info) => {
             unsafe {
-                let ec = ruby_current_execution_context_ptr;
-                let self_ = (*(*ec).cfp).self_;
-                let method = rb_obj_method(self_.clone(), rb_id2sym(call_info.mid));
-                let iseq = rb_method_iseq(method);
+                // state.pop();
+                // // let ec = ruby_current_execution_context_ptr;
+                // // let self_ = (*(*ec).cfp).self_;
+                let string_ = CString::new("CallTest").unwrap();
+                let method = rb_obj_method(rb_const_get(rb_cObject, rb_intern(string_.as_ptr())), rb_id2sym(call_info.mid));
+                let iseq: rb_iseq_t = *rb_method_iseq(method);
                 println!("{:?}", iseq);
+                println!("{:?}", *(iseq.body));
+
+                
+
+
+                // let method = rb_obj_method(state.self_, rb_id2sym(call_info.mid));
+                // let iseq: rb_iseq_t = *rb_method_iseq(method);
+                // println!("{:?}", iseq);
+                // println!("{:?}", *(iseq.body));
             }
         },
         OpCode::Leave => {
