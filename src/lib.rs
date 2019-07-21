@@ -9,27 +9,29 @@ use corundum_ruby::*;
 
 ruby! {
     class Corundum {
-        def preview_cranelift_ir(name: String, iseqw: HVALUE) -> String {
-            let val = unsafe { std::mem::transmute::<HVALUE, corundum_ruby::VALUE>(iseqw) };
-            let iseq = unsafe { *rb_iseqw_to_iseq(val) };
+        def preview_cranelift_ir(object: HVALUE, method: HVALUE) -> String {
+            let object = unsafe { std::mem::transmute::<HVALUE, RValue>(object) };
+            let method = unsafe { std::mem::transmute::<HVALUE, RValue>(method) };
+
+
             let mut jit = corundum_jit::jit::JIT::new();
-            jit.preview(&name, iseq)
+            jit.preview(object, method)
         }
 
-        def compile(name: String, iseqw: HVALUE ) {
-            let val = unsafe { std::mem::transmute::<HVALUE, corundum_ruby::VALUE>(iseqw) };
-            let iseq = unsafe { *rb_iseqw_to_iseq(val) };
+        def compile(object: HVALUE, method: HVALUE) {
+            let object = unsafe { std::mem::transmute::<HVALUE, RValue>(object) };
+            let method = unsafe { std::mem::transmute::<HVALUE, RValue>(method) };
 
             let mut jit = corundum_jit::jit::JIT::new();
-            let x = jit.compile(&name, iseq);
+            let x = jit.compile(object, method);
         }
 
-        def compile_and_run(name: String, iseqw: HVALUE ) -> HVALUE {
-            let val = unsafe { std::mem::transmute::<HVALUE, corundum_ruby::VALUE>(iseqw) };
-            let iseq = unsafe { *rb_iseqw_to_iseq(val) };
+        def compile_and_run(object: HVALUE, method: HVALUE) -> HVALUE {
+            let object = unsafe { std::mem::transmute::<HVALUE, RValue>(object) };
+            let method = unsafe { std::mem::transmute::<HVALUE, RValue>(method) };
 
             let mut jit = corundum_jit::jit::JIT::new();
-            let x = jit.run(&name, iseq);
+            let x = jit.run(object, method);
             unsafe { std::mem::transmute::<RValue, HVALUE>(x) }
         }
     }

@@ -3,7 +3,7 @@ require "test_helper"
 class BenchmarksTest < Minitest::Test
 
   def test_while_loop
-    assert_equal 3_000_000, Corundum.run(self, :while_loop)
+    assert_equal 3_000_000, Corundum.compile_and_run(self, method(:while_loop))
   end
 
   # def test_factorial

@@ -4,7 +4,6 @@ use cranelift_codegen::ir::types::I64;
 
 use opcode::OpCode;
 use opcode_translator;
-use tracelet_translator;
 use translation_state::TranslationState;
 use corundum_ruby::rb_iseq_t;
 
