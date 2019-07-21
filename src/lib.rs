@@ -32,28 +32,5 @@ ruby! {
             let x = jit.run(&name, iseq);
             unsafe { std::mem::transmute::<RValue, HVALUE>(x) }
         }
-
-        def compile_tracelet(name: String, iseqw: HVALUE ) {
-            let val = unsafe { std::mem::transmute::<HVALUE, corundum_ruby::VALUE>(iseqw) };
-            let iseq = unsafe { *rb_iseqw_to_iseq(val) };
-
-            let mut jit = corundum_jit::jit::JIT::new();
-            let x = jit.compile_tracelet(&name, iseq);
-        }
-
-        def compile_and_run_tracelet(name: String, iseqw: HVALUE ) -> HVALUE {
-            let val = unsafe { std::mem::transmute::<HVALUE, corundum_ruby::VALUE>(iseqw) };
-            let iseq = unsafe { *rb_iseqw_to_iseq(val) };
-
-            let mut jit = corundum_jit::jit::JIT::new();
-            let x = jit.run_tracelet(&name, iseq);
-            unsafe { std::mem::transmute::<RValue, HVALUE>(x) }
-        }
-
-        def preview_iseqw_to_iseq(iseqw: HVALUE) {
-            let val = unsafe { std::mem::transmute::<HVALUE, corundum_ruby::VALUE>(iseqw) };
-            let iseq = unsafe { rb_iseqw_to_iseq(val) };
-            println!("{:?}", unsafe { *(*iseq).body });
-        }
     }
 }
