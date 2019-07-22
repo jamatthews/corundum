@@ -1,6 +1,11 @@
 #[macro_use]
 use cranelift::prelude::*;
+use cranelift_codegen::Context;
+use cranelift_codegen::isa::CallConv;
+use cranelift_codegen::ir::Function;
 use cranelift_codegen::ir::types::I64;
+use cranelift_module::*;
+use cranelift_simplejit::*;
 
 use corundum_ruby::rb_const_get;
 use corundum_ruby::rb_id2sym;
@@ -15,6 +20,7 @@ use corundum_ruby::rb_intern;
 use corundum_ruby::value::Value as RValue;
 
 use opcode::OpCode;
+use method_translator::MethodTranslator;
 use translation_state::TranslationState;
 
 use std::ffi::CString;
@@ -42,7 +48,7 @@ macro_rules! i64_2_value {
     }}
 }
 
-pub fn translate_code(op: OpCode, offset: i32, builder: &mut FunctionBuilder, state: &mut TranslationState, _return_pointer: &Value) {
+pub fn translate_code(op: OpCode, offset: i32, builder: &mut FunctionBuilder, state: &mut TranslationState, module: &mut Module<SimpleJITBackend>) {
     match op {
         OpCode::Nop => {},
         OpCode::PutNil => {
@@ -68,10 +74,30 @@ pub fn translate_code(op: OpCode, offset: i32, builder: &mut FunctionBuilder, st
                 let string_ = CString::new("CallTest").unwrap();
                 let method = rb_obj_method(rb_const_get(rb_cObject, rb_intern(string_.as_ptr())), rb_id2sym(call_info.mid));
                 let iseq: rb_iseq_t = *rb_method_iseq(method);
-                println!("{:?}", iseq);
-                println!("{:?}", *(iseq.body));
 
-                
+                let sig = Signature {
+                    params: vec![],
+                    returns: vec![AbiParam::new(I64)],
+                    call_conv: CallConv::SystemV,
+                };
+
+                let mut codegen_context = Context::new();
+                let func_id = (*module).declare_function(&method.to_string(), Linkage::Local, &sig).unwrap();
+                codegen_context.func = Function::with_name_signature(ExternalName::user(0, func_id.as_u32()), sig);
+                {
+                    let mut builder_context = FunctionBuilderContext::new();
+                    let mut builder = FunctionBuilder::new(&mut codegen_context.func, &mut builder_context);
+
+                    MethodTranslator::new(&mut (*module), builder).translate(iseq).unwrap();
+                }
+
+                (*module).define_function(func_id, &mut codegen_context).unwrap();
+
+                let local_callee = (*module).declare_func_in_func(func_id, &mut builder.func);
+                let call = builder.ins().call(local_callee, &vec![]);
+                state.push(builder.inst_results(call)[0])
+
+
 
 
                 // let method = rb_obj_method(state.self_, rb_id2sym(call_info.mid));

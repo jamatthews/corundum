@@ -39,14 +39,14 @@ impl JIT {
             call_conv: CallConv::SystemV,
         };
         let iseq = unsafe { *rb_method_iseq(method.value as u64) };
-        let func_id = self.module.declare_function("fake", Linkage::Local, &sig).unwrap();
+        let func_id = self.module.declare_function(&(method.value as u64).to_string(), Linkage::Local, &sig).unwrap();
         self.codegen_context.func = Function::with_name_signature(ExternalName::user(0, func_id.as_u32()), sig);
 
         {
             let mut builder_context = FunctionBuilderContext::new();
             let mut builder = FunctionBuilder::new(&mut self.codegen_context.func, &mut builder_context);
 
-            MethodTranslator::new(builder).translate(iseq).unwrap();
+            MethodTranslator::new(&mut self.module, builder).translate(iseq).unwrap();
         }
 
         self.module.define_function(func_id, &mut self.codegen_context).unwrap();
@@ -67,6 +67,6 @@ impl JIT {
         let mut builder_context = FunctionBuilderContext::new();
         let mut builder = FunctionBuilder::new(&mut self.codegen_context.func, &mut builder_context);
 
-        MethodTranslator::new(builder).preview(iseq).unwrap()
+        MethodTranslator::new(&mut self.module, builder).preview(iseq).unwrap()
     }
 }
