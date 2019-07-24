@@ -1,7 +1,4 @@
 use cranelift::prelude::*;
-use cranelift_codegen::Context;
-use cranelift_codegen::isa::CallConv;
-use cranelift_codegen::ir::Function;
 use cranelift_codegen::ir::types::I64;
 use cranelift_module::*;
 use cranelift_simplejit::*;
@@ -36,6 +33,9 @@ impl <'a> MethodTranslator<'a> {
 
         //TODO handle mapping variables!
         self.builder.declare_var(Variable::with_u32(3), I64);
+        let arg = self.builder.ebb_params(block)[0];
+        self.builder.def_var(Variable::with_u32(3), arg);
+
 
         let mut offset = 0;
         let max = unsafe { (*iseq.body).iseq_size };
@@ -45,11 +45,6 @@ impl <'a> MethodTranslator<'a> {
             let opcode: OpCode = (insn_ptr, operands_ptr).into();
             offset += opcode.size();
 
-            let sig = Signature {
-                params: vec![AbiParam::new(I64)],
-                returns: vec![AbiParam::new(I64)],
-                call_conv: CallConv::SystemV,
-            };
             opcode_translator::translate_code(opcode, offset as i32, &mut self.builder, &mut self.state, &mut (*self.module));
             match self.state.get_block(offset as i32) {
                 Some(block) => {
@@ -67,7 +62,7 @@ impl <'a> MethodTranslator<'a> {
         Ok(())
     }
 
-    pub fn preview(&mut self, iseq: rb_iseq_t) -> Result<String, String> {
+    pub fn preview(&mut self) -> Result<String, String> {
         Ok(self.builder.display(None).to_string())
     }
 }

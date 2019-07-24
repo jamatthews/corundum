@@ -12,8 +12,6 @@ end
 
 Benchmark.bmbm do |x|
   x.report("vm") { while_loop }
-  x.report("baseline compile") { Corundum.compile_only(self, :while_loop) }
-  x.report("baseline compile and run") { Corundum.run(self, :while_loop) }
-  x.report("tracelet compile only") { Corundum.compile_tracelet_only(self, :while_loop) }
-  x.report("tracelet compile and run") { Corundum.run_tracelet(self, :while_loop) }
+  x.report("baseline compile") { Corundum.compile(self, method(:while_loop)) }
+  x.report("baseline compile and run") { Corundum.compile_and_run(self, method(:while_loop)) }
 end

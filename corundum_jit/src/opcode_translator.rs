@@ -1,13 +1,12 @@
-#[macro_use]
 use cranelift::prelude::*;
 use cranelift_codegen::Context;
 use cranelift_codegen::isa::CallConv;
 use cranelift_codegen::ir::Function;
 use cranelift_codegen::ir::types::I64;
 use cranelift_module::*;
+use cranelift_module::FuncOrDataId::Func;
 use cranelift_simplejit::*;
 
-use corundum_ruby::rb_const_get;
 use corundum_ruby::rb_id2sym;
 use corundum_ruby::fixnum::rb_int2inum;
 use corundum_ruby::rb_iseq_t;
@@ -15,15 +14,10 @@ use corundum_ruby::rb_method_iseq;
 use corundum_ruby::rb_obj_method;
 use corundum_ruby::ruby_special_consts::RUBY_Qnil;
 use corundum_ruby::ruby_current_execution_context_ptr;
-use corundum_ruby::rb_cObject;
-use corundum_ruby::rb_intern;
-use corundum_ruby::value::Value as RValue;
 
 use opcode::OpCode;
 use method_translator::MethodTranslator;
 use translation_state::TranslationState;
-
-use std::ffi::CString;
 
 macro_rules! b1_2_value {
     ($x:ident, $builder:ident) => {{
@@ -68,42 +62,42 @@ pub fn translate_code(op: OpCode, offset: i32, builder: &mut FunctionBuilder, st
         },
         OpCode::OptSendWithoutBlock(call_info) => {
             unsafe {
-                // state.pop();
-                // // let ec = ruby_current_execution_context_ptr;
-                // // let self_ = (*(*ec).cfp).self_;
-                let string_ = CString::new("CallTest").unwrap();
-                let method = rb_obj_method(rb_const_get(rb_cObject, rb_intern(string_.as_ptr())), rb_id2sym(call_info.mid));
+                let arg = state.pop();
+                let ec = ruby_current_execution_context_ptr;
+                let self_ = (*(*ec).cfp).self_;
+                let method = rb_obj_method(self_, rb_id2sym(call_info.mid));
                 let iseq: rb_iseq_t = *rb_method_iseq(method);
 
-                let sig = Signature {
-                    params: vec![],
-                    returns: vec![AbiParam::new(I64)],
-                    call_conv: CallConv::SystemV,
-                };
+                match (*module).get_name(&call_info.mid.to_string()) {
+                    Some(Func(func_id)) => {
+                        let local_callee = (*module).declare_func_in_func(func_id, &mut builder.func);
+                        let call = builder.ins().call(local_callee, &vec![arg]);
+                        state.push(builder.inst_results(call)[0])
+                    },
+                    _ => {
+                        let sig = Signature {
+                            params: vec![AbiParam::new(I64)],
+                            returns: vec![AbiParam::new(I64)],
+                            call_conv: CallConv::SystemV,
+                        };
 
-                let mut codegen_context = Context::new();
-                let func_id = (*module).declare_function(&method.to_string(), Linkage::Local, &sig).unwrap();
-                codegen_context.func = Function::with_name_signature(ExternalName::user(0, func_id.as_u32()), sig);
-                {
-                    let mut builder_context = FunctionBuilderContext::new();
-                    let mut builder = FunctionBuilder::new(&mut codegen_context.func, &mut builder_context);
+                        let mut codegen_context = Context::new();
+                        let func_id = (*module).declare_function(&call_info.mid.to_string(), Linkage::Local, &sig).unwrap();
+                        codegen_context.func = Function::with_name_signature(ExternalName::user(0, func_id.as_u32()), sig);
+                        {
+                            let mut builder_context = FunctionBuilderContext::new();
+                            let mut builder = FunctionBuilder::new(&mut codegen_context.func, &mut builder_context);
 
-                    MethodTranslator::new(&mut (*module), builder).translate(iseq).unwrap();
+                            MethodTranslator::new(&mut (*module), builder).translate(iseq).unwrap();
+                        }
+
+                        (*module).define_function(func_id, &mut codegen_context).unwrap();
+
+                        let local_callee = (*module).declare_func_in_func(func_id, &mut builder.func);
+                        let call = builder.ins().call(local_callee, &vec![arg]);
+                        state.push(builder.inst_results(call)[0])
+                    }
                 }
-
-                (*module).define_function(func_id, &mut codegen_context).unwrap();
-
-                let local_callee = (*module).declare_func_in_func(func_id, &mut builder.func);
-                let call = builder.ins().call(local_callee, &vec![]);
-                state.push(builder.inst_results(call)[0])
-
-
-
-
-                // let method = rb_obj_method(state.self_, rb_id2sym(call_info.mid));
-                // let iseq: rb_iseq_t = *rb_method_iseq(method);
-                // println!("{:?}", iseq);
-                // println!("{:?}", *(iseq.body));
             }
         },
         OpCode::Leave => {
@@ -128,10 +122,10 @@ pub fn translate_code(op: OpCode, offset: i32, builder: &mut FunctionBuilder, st
             state.push(i64_2_value!(result, builder));
         },
         OpCode::OptMinus => {
-            let lhs = state.pop();
             let rhs = state.pop();
-            let lhs_int = value_2_i64!(lhs, builder);
+            let lhs = state.pop();
             let rhs_int = value_2_i64!(rhs, builder);
+            let lhs_int = value_2_i64!(lhs, builder);
             let result = builder.ins().isub(lhs_int, rhs_int);
             state.push(i64_2_value!(result, builder));
         },

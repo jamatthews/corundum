@@ -32,7 +32,7 @@ impl JIT {
         function()
     }
 
-    pub fn compile(&mut self, object: RValue, method: RValue) -> Result<*const u8, String> {
+    pub fn compile(&mut self, _object: RValue, method: RValue) -> Result<*const u8, String> {
         let sig = Signature {
             params: vec![AbiParam::new(I64)],
             returns: vec![AbiParam::new(I64)],
@@ -44,7 +44,7 @@ impl JIT {
 
         {
             let mut builder_context = FunctionBuilderContext::new();
-            let mut builder = FunctionBuilder::new(&mut self.codegen_context.func, &mut builder_context);
+            let builder = FunctionBuilder::new(&mut self.codegen_context.func, &mut builder_context);
 
             MethodTranslator::new(&mut self.module, builder).translate(iseq).unwrap();
         }
@@ -55,7 +55,7 @@ impl JIT {
         Ok(code)
     }
 
-    pub fn preview(&mut self, object: RValue, method: RValue) -> String {
+    pub fn preview(&mut self, _object: RValue, method: RValue) -> String {
         let sig = Signature {
             params: vec![AbiParam::new(I64)],
             returns: vec![AbiParam::new(I64)],
@@ -65,8 +65,10 @@ impl JIT {
         let func_id = self.module.declare_function("fake", Linkage::Local, &sig).unwrap();
         self.codegen_context.func = Function::with_name_signature(ExternalName::user(0, func_id.as_u32()), sig);
         let mut builder_context = FunctionBuilderContext::new();
-        let mut builder = FunctionBuilder::new(&mut self.codegen_context.func, &mut builder_context);
+        let builder = FunctionBuilder::new(&mut self.codegen_context.func, &mut builder_context);
 
-        MethodTranslator::new(&mut self.module, builder).preview(iseq).unwrap()
+        let mut translator = MethodTranslator::new(&mut self.module, builder);
+        translator.translate(iseq).unwrap();
+        translator.preview().unwrap()
     }
 }

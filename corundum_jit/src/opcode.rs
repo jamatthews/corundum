@@ -1,6 +1,4 @@
-use corundum_ruby::rb_fix2int;
 use corundum_ruby::rb_vm_insn_addr2insn;
-use corundum_ruby::value::Value;
 use corundum_ruby::rb_call_info;
 
 #[derive(Debug)]

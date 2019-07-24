@@ -5,7 +5,6 @@ extern crate corundum_jit;
 
 use helix::sys::VALUE as HVALUE;
 use corundum_ruby::value::Value as RValue;
-use corundum_ruby::*;
 
 ruby! {
     class Corundum {
@@ -23,7 +22,7 @@ ruby! {
             let method = unsafe { std::mem::transmute::<HVALUE, RValue>(method) };
 
             let mut jit = corundum_jit::jit::JIT::new();
-            let x = jit.compile(object, method);
+            jit.compile(object, method).unwrap();
         }
 
         def compile_and_run(object: HVALUE, method: HVALUE) -> HVALUE {
