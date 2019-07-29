@@ -10,6 +10,10 @@ class BenchmarksTest < Minitest::Test
     assert_equal 6, Corundum.compile_and_run(self, BenchmarksTest.method(:factorial))
   end
 
+  def test_array
+    assert_equal [], Corundum.compile_and_run(self, method(:array))
+  end
+
   private
 
   def while_loop
@@ -22,5 +26,9 @@ class BenchmarksTest < Minitest::Test
 
   def self.factorial
     fact(3)
+  end
+
+  def array
+    Array.new(0)
   end
 end

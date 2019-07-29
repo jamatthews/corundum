@@ -4,6 +4,7 @@ use corundum_ruby::rb_call_info;
 #[derive(Debug)]
 pub enum OpCode {
     Nop,
+    GetConstant(u64),
     PutNil,
     PutSelf,
     PutObject(u64),
@@ -13,6 +14,8 @@ pub enum OpCode {
     Jump(i32),
     BranchIf(i32),
     BranchUnless(i32),
+    GetInlineCache,
+    SetInlineCache,
     OptPlus,
     OptMinus,
     OptMulti,
@@ -30,6 +33,7 @@ impl From<(*const u64, *const u64)> for OpCode {
 
         match insn {
             0 => OpCode::Nop,
+            12 => OpCode::GetConstant(unsafe { *pointers.1 }),
             16 => OpCode::PutNil,
             17 => OpCode::PutSelf,
             18 => OpCode::PutObject(unsafe { *pointers.1 }),
@@ -39,6 +43,8 @@ impl From<(*const u64, *const u64)> for OpCode {
             59 => OpCode::Jump(unsafe { *pointers.1 } as i32),
             60 => OpCode::BranchIf(unsafe { *pointers.1 } as i32),
             61 => OpCode::BranchUnless(unsafe { *pointers.1 } as i32),
+            63 => OpCode::GetInlineCache,
+            64 => OpCode::SetInlineCache,
             67 => OpCode::OptPlus,
             68 => OpCode::OptMinus,
             69 => OpCode::OptMulti,
@@ -57,16 +63,19 @@ impl OpCode {
     pub fn size(&self) -> u32 {
         match *self {
             OpCode::OptSendWithoutBlock(_)
+                |OpCode::GetInlineCache
                 |OpCode::OptPlus
                 |OpCode::OptMinus
                 |OpCode::OptMulti
                 |OpCode::OptLt
                 |OpCode::OptGt
                 => 3,
-            OpCode::PutObject(_)
+            OpCode::GetConstant(_)
+                |OpCode::PutObject(_)
                 |OpCode::Jump(_)
                 |OpCode::BranchIf(_)
                 |OpCode::BranchUnless(_)
+                |OpCode::SetInlineCache
                 |OpCode::SetLocalWc0(_)
                 |OpCode::GetLocalWc0(_)
                 => 2,
