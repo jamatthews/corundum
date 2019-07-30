@@ -1,33 +1,13 @@
 # Corundum
 
-Corundum is an experiment at adding a baseline JIT compiler to CRuby
+Corundum is a very early experiment a adding a baseline method JIT compiler to CRuby. Right now it lowers CRuby YARV bytecode to CraneLift IR and then uses CraneLift to compile methods.
 
-## Installation
-
-Add this line to your application's Gemfile:
-
-```ruby
-gem 'corundum'
-```
-
-And then execute:
-
-    $ bundle
-
-Or install it yourself as:
-
-    $ gem install corundum
-
-## Usage
-
-TODO: Write usage instructions here
-
-## Development
-
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake test` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
-
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+## Building and running tests
+`git clone git@github.com:jamatthews/corundum.git`
+`git clone https://github.com/ruby/ruby.git && cd ruby && git checkout v2_6_3`
+`RUBY_CONFIGURE_OPTS=--enable-shared rbenv install --patch 2.6.3 < curl https://gist.githubusercontent.com/jamatthews/ebc37e424f98a5e4927c2cd04e07c07b/raw/30f429ae60baa0482424afca1f75d6b8cf65828c/exports.patch`
+`cd corundum && bundle exec rake build && bundle exec rake test`
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/corundum.
+Bug reports and pull requests are welcome on GitHub at https://github.com/jamatthews/corundum.
